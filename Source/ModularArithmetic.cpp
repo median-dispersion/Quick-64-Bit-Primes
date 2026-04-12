@@ -1,4 +1,5 @@
 #include "ModularArithmetic.hpp"
+#include <cstdint>
 
 namespace q64bp::ModularArithmetic {
 
