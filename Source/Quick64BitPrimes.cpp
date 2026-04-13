@@ -129,7 +129,7 @@ namespace q64bp {
     // Integer factorization using Pollard's rho algorithm and Floyd's cycle detection method
     // https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm#Algorithm
     // ============================================================================================
-    std::uint_fast64_t pollardFloydFactorization(std::uint_fast64_t number) {
+    /* std::uint_fast64_t pollardFloydFactorization(std::uint_fast64_t number) {
 
         // Do a quick safety check if the number is divisible by two
         if (number % 2 == 0) {
@@ -142,20 +142,21 @@ namespace q64bp {
         // Initialize the random number generator
         static std::mt19937_64 rng(std::random_device{}());
 
-        // Get a uniform distribution to choose a random starting postion for the tortoise
+        // Get a uniform distribution to choose a random starting postion for the variable of the polynomial function
         // The range is 2 to number - 2
         // This is to avoid trivial or degenerate cases
-        std::uniform_int_distribution<std::uint_fast64_t> tortoiseDistribution(2, number - 2);
+        std::uniform_int_distribution<std::uint_fast64_t> variableDistribution(2, number - 2);
 
         // Get a uniform distribution to choose a random constant for the polynomial function
         // The range is 1 to number - 1
-        std::uniform_int_distribution<std::uint_fast64_t> constantDistribution(1, number - 1);
+        // Defined as 1 to number - 2 because number - 2 will later be skipped by adding one
+        std::uniform_int_distribution<std::uint_fast64_t> constantDistribution(1, number - 2);
 
         // Loop until a nontrivial factor is found
         while (true) {
 
             // Set the tortoise to a random starting position in the allowed range
-            std::uint_fast64_t tortoise = tortoiseDistribution(rng);
+            std::uint_fast64_t tortoise = variableDistribution(rng);
 
             // Set the hare to the same starting position as the tortoise
             std::uint_fast64_t hare = tortoise;
@@ -163,13 +164,11 @@ namespace q64bp {
             // Get a random value in the allowed range for the constant in the polynomial function
             std::uint_fast64_t constant = constantDistribution(rng);
 
-            // Check if the constant is number - 2
-            // Loop until it isn't
-            // A constant of number - 2 can cause issues for example shot cycles and symmetry
-            while (constant == number - 2) {
+            // Skip constant = number - 2
+            if (constant == number - 2) {
 
-                // Choose a new random constant
-                constant = constantDistribution(rng);
+                // By adding one to the constant
+                constant++;
 
             }
 
@@ -186,7 +185,7 @@ namespace q64bp {
                 hare = polynomial(polynomial(hare, constant, number), constant, number);
 
                 // Get the greatest common divisor between |tortoise - hare| and the number
-                factor = std::gcd((tortoise < hare) ? hare - tortoise : tortoise - hare, number);
+                factor = std::gcd(tortoise < hare ? hare - tortoise : tortoise - hare, number);
 
             }
 
@@ -199,6 +198,153 @@ namespace q64bp {
             }
 
             // If the factor is the number itself retry from the top with new random values for the polynomial function
+
+        }
+
+    } */
+
+    // ============================================================================================
+    // Integer factorization using Pollard's rho algorithm and Brent's cycle detection method
+    // ============================================================================================
+    std::uint_fast64_t pollardBrentFactorization(std::uint_fast64_t number) {
+
+        // Do a quick safety check if the number is divisible by two
+        if (number % 2 == 0) {
+
+            // Return a factor of two
+            return 2;
+
+        }
+
+        // Initialize the random number generator
+        static std::mt19937_64 rng(std::random_device{}());
+
+        // Get a uniform distribution to choose a random starting postion for the variable of the polynomial function
+        // The range is 2 to number - 2
+        // This is to avoid trivial or degenerate cases
+        std::uniform_int_distribution<std::uint_fast64_t> variableDistribution(2, number - 2);
+
+        // Get a uniform distribution to choose a random constant for the polynomial function
+        // The range is 1 to number - 1
+        // Defined as 1 to number - 2 because number - 2 will later be skipped by adding one
+        std::uniform_int_distribution<std::uint_fast64_t> constantDistribution(1, number - 2);
+
+        // Loop until a nontrivial factor is found
+        while (true) {
+
+            // Set the tortoise to a random starting position in the allowed range
+            std::uint_fast64_t tortoise = variableDistribution(rng);
+
+            // Set the hare to the same starting position as the tortoise
+            std::uint_fast64_t hare = tortoise;
+
+            // Set the backup position to the position of the tortoise and hare
+            std::uint_fast64_t backup = tortoise;
+
+            // Get a random value in the allowed range for the constant in the polynomial function
+            std::uint_fast64_t constant = constantDistribution(rng);
+
+            // Skip constant = number - 2
+            if (constant == number - 2) {
+
+                // By adding one to the constant
+                constant++;
+
+            }
+
+            // Batch size for Brent's optimization (controls how often the greatest common divisor is computed)
+            // A value of 128 seems like a good value for all ranges
+            std::uint_fast64_t batchSize = 128;
+
+            // Initialize cycle length (doubles each phase)
+            std::uint_fast64_t phaseLength = 1;
+
+            // Initialize the product of differences (used for batched greatest common divisor calculations)
+            std::uint_fast64_t product = 1;
+
+            // Initialize the factor
+            std::uint_fast64_t factor = 1;
+
+            // Loop until a factor is found
+            while (factor == 1) {
+
+                // Teleport the tortoise to current hare position (start of new phase)
+                tortoise = hare;
+
+                // Advance hare by the phase length (explore sequence)
+                for (std::uint_fast64_t i = 0; i < phaseLength; i++) {
+
+                    // Advance the hare position
+                    hare = polynomial(hare, constant, number);
+
+                }
+
+                // Track how many steps have been taken
+                std::uint_fast64_t step = 0;
+
+                // Process the phase in batches
+                while (step < phaseLength && factor == 1) {
+
+                    // Save current hare position in case the fallback is required
+                    backup = hare;
+
+                    // Process up to the batch size or the remaining steps in the phase
+                    for (std::uint_fast64_t i = 0; i < batchSize && i < phaseLength - step; i++) {
+
+                        // Advance the hare position
+                        hare = polynomial(hare, constant, number);
+
+                        // Multiply accumulated product by |tortoise - hare| mod number
+                        product = ModularArithmetic::multiplication(
+                            product,
+                            tortoise < hare ? hare - tortoise : tortoise - hare,
+                            number
+                        );
+
+                    }
+
+                    // Compute the greatest common divisor of the accumulated product and the number
+                    factor = std::gcd(product, number);
+
+                    // Move forward by the batch size
+                    step += batchSize;
+
+                }
+
+                // Double the phase length for next iteration using a left bit shift
+                phaseLength <<= 1;
+
+            }
+
+            // Check if the found factor is the number itself
+            // Do the fallback check
+            if (factor == number) {
+
+                do {
+
+                    // Advance the backup position one step at a time
+                    backup = polynomial(backup, constant, number);
+
+                    // Compute greatest common divisor of |tortoise - backup| and the number
+                    factor = std::gcd(
+                        tortoise < backup ? backup - tortoise : tortoise - backup,
+                        number
+                    );
+
+                // Loop until a factor is found
+                } while (factor == 1);
+
+            }
+
+            // Check if the factor is not the number itself
+            if (factor < number) {
+
+                // Return the nontrivial factor
+                return factor;
+
+            }
+
+            // If the factor is still the number itself retry from the top with new random values for the polynomial function
 
         }
 
@@ -234,7 +380,7 @@ namespace q64bp {
         std::vector<PrimeFactor> primeFactors;
 
         // Get a factor of the number
-        std::uint_fast64_t factor1 = pollardFloydFactorization(number);
+        std::uint_fast64_t factor1 = pollardBrentFactorization(number);
 
         // Deduce the other factor
         std::uint_fast64_t factor2 = number / factor1;
@@ -292,7 +438,7 @@ namespace q64bp {
             }
 
             // Break down the latest factor into a new factor
-            std::uint_fast64_t newFactor1 = pollardFloydFactorization(latestFactor);
+            std::uint_fast64_t newFactor1 = pollardBrentFactorization(latestFactor);
 
             // Deduce the other factor
             std::uint_fast64_t newFactor2 = latestFactor / newFactor1;
