@@ -115,6 +115,76 @@ namespace q64bp {
     }
 
     // ============================================================================================
+    // Prime decomposition using trial division
+    // ============================================================================================
+    std::vector<PrimeFactor> trialDivision(std::uint_fast64_t number) {
+
+        // Initialize list of prime factors
+        std::vector<PrimeFactor> primeFactors;
+
+        // Check if the number is divisible by two
+        if (number % 2 == 0) {
+
+            // Initialize the prime factor exponent
+            std::uint_fast64_t exponent = 0;
+
+            // Loop until the number is not longer divisible by the prime factor
+            while (number % 2 == 0) {
+
+                // Divide out the prime factor
+                number /= 2;
+
+                // Increase the prime factor exponent;
+                exponent++;
+
+            }
+
+            // Add the prime factor and its exponent to the list of prime factors
+            primeFactors.emplace_back(2, exponent);
+
+        }
+
+        // Loop through every odd value up to the square root of the number
+        for(std::uint_fast64_t base = 3; base * base <= number; base += 2) {
+
+            // Check if the number is divisible by the base
+            if (number % base == 0) {
+
+                // Initialize the prime factor exponent
+                std::uint_fast64_t exponent = 0;
+
+                // Loop until the number is not longer divisible by the prime factor
+                while (number % base == 0) {
+
+                    // Divide out the prime factor
+                    number /= base;
+
+                    // Increase the prime factor exponent;
+                    exponent++;
+
+                }
+
+                // Add the prime factor and its exponent to the list of prime factors
+                primeFactors.emplace_back(base, exponent);
+
+            }
+
+        }
+
+        // Check if the number is still more than one
+        if (number > 1) {
+
+            // Add the remaining prime factor
+            primeFactors.emplace_back(number, 1);
+
+        }
+
+        // Return all prime factors
+        return primeFactors;
+
+    }
+
+    // ============================================================================================
     // Polynomial function f(x) = (x² + c) mod m
     // ============================================================================================
     std::uint_fast64_t polynomial(
@@ -370,6 +440,15 @@ namespace q64bp {
             // No prime can be broken down into prime factors
             // Return no prime factors
             return {};
+
+        }
+
+        // Check if the number is less than 1'000'000
+        if (number < 1'000'000) {
+
+            // Use trial division to break down the number into prime factors
+            // Trial division is generally faster for small number up to around one million
+            return trialDivision(number);
 
         }
 
