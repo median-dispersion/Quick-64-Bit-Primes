@@ -5,6 +5,7 @@
 #include <random>
 #include <numeric>
 #include <vector>
+#include <algorithm>
 
 namespace q64bp {
 
@@ -29,11 +30,19 @@ namespace q64bp {
         // But they also happen to work great as a quick check for small primes
         for (std::uint_fast64_t prime : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
 
+            // Check if the number itself is the prime
+            if (number == prime) {
+
+                // Return that the number is a prime
+                return true;
+
+            }
+
             // Check if the number is divisible by the prime
             if (number % prime == 0) {
 
-                // Return true only if the number itself is the prime else return false
-                return number == prime;
+                // Return that the number is not a prime
+                return false;
 
             }
 
@@ -121,6 +130,10 @@ namespace q64bp {
 
         // Initialize list of prime factors
         std::vector<PrimeFactor> primeFactors;
+
+        // Reserve space for seven prime factors
+        // In a range of 0 to 1'000'000 the number 510'510 has seven prime factors
+        primeFactors.reserve(7);
 
         // Check if the number is divisible by two
         if (number % 2 == 0) {
@@ -342,7 +355,7 @@ namespace q64bp {
                 tortoise = hare;
 
                 // Advance hare by the phase length (explore sequence)
-                for (std::uint_fast64_t i = 0; i < phaseLength; i++) {
+                for (std::uint_fast64_t index = 0; index < phaseLength; index++) {
 
                     // Advance the hare position
                     hare = polynomial(hare, constant, number);
@@ -359,7 +372,7 @@ namespace q64bp {
                     backup = hare;
 
                     // Process up to the batch size or the remaining steps in the phase
-                    for (std::uint_fast64_t i = 0; i < batchSize && i < phaseLength - step; i++) {
+                    for (std::uint_fast64_t index = 0; index < batchSize && index < phaseLength - step; index++) {
 
                         // Advance the hare position
                         hare = polynomial(hare, constant, number);
@@ -425,10 +438,10 @@ namespace q64bp {
     // ============================================================================================
     std::vector<PrimeFactor> primeDecomposition(std::uint_fast64_t number) {
 
-        // Check if the number is less than 2
-        if (number < 2) {
+        // Check if the number is less than four
+        if (number < 4) {
 
-            // No number less that two can be a prime or broken down into prime factors
+            // No number less than for can be broken down into prime factors
             // Return no prime factors
             return {};
 
@@ -452,83 +465,89 @@ namespace q64bp {
 
         }
 
-        // Initialize a list of all factors of the number
-        std::vector<std::uint_fast64_t> allFactors;
+        // Initialize a list for all factors and all primes
+        std::vector<std::uint_fast64_t> factors;
+        std::vector<std::uint_fast64_t> primes;
 
-        // Initialize a list of all prime factors of the number
-        std::vector<PrimeFactor> primeFactors;
+        // Reserve size for 64 entries
+        // An unsigned 64-bit integer can only have 64 factors
+        // 2⁶⁴ = 2 x 2 x 2 ... 64 times
+        factors.reserve(64);
+        primes.reserve(64);
 
-        // Get a factor of the number
+        // Get one prime factor of the number and deduce the second factor
         std::uint_fast64_t factor1 = pollardBrentFactorization(number);
-
-        // Deduce the other factor
         std::uint_fast64_t factor2 = number / factor1;
 
         // Add both factors to the list of all factors
-        allFactors.push_back(factor1);
-        allFactors.push_back(factor2);
+        factors.push_back(factor1);
+        factors.push_back(factor2);
 
-        // Loop until there are no more none prime factors
-        while (!allFactors.empty()) {
+        // Loop until there are no more factors
+        while (!factors.empty()) {
 
             // Get the latest factor from the list of all factors
-            std::uint_fast64_t latestFactor = allFactors.back();
+            std::uint_fast64_t factor = factors.back();
 
             // Remove the latest factor from the list of all factors
-            allFactors.pop_back();
-
-            // Check if the latest factor is one
-            if (latestFactor == 1) {
-
-                // One is not a prime and can not be broken down
-                // Continue with next factor
-                continue;
-
-            }
+            factors.pop_back();
 
             // Check if the latest factor is a prime
-            if (millerRabinPrimalityTest(latestFactor)) {
+            if (millerRabinPrimalityTest(factor)) {
 
-                // Initialize the prime factor exponent
-                std::uint_fast64_t exponent = 1;
-
-                // Loop through all other factors of the number
-                for (auto& otherFactor : allFactors) {
-
-                    // Loop until the other factor is no longer divisible by the prime factor
-                    while (otherFactor % latestFactor == 0) {
-
-                        // Divide out the prime factor
-                        otherFactor /= latestFactor;
-
-                        // Increase the prime factor exponent
-                        exponent++;
-
-                    }
-
-                }
-
-                // Add the prime factor to the list of all prime factors
-                primeFactors.emplace_back(latestFactor, exponent);
+                // Add the latest factor to the list of primes
+                primes.push_back(factor);
 
                 // Continue with the next factor
                 continue;
 
             }
 
-            // Break down the latest factor into a new factor
-            std::uint_fast64_t newFactor1 = pollardBrentFactorization(latestFactor);
+            // Break down the latest factor into a new factor and deduce the other new factor
+            std::uint_fast64_t newFactor1 = pollardBrentFactorization(factor);
+            std::uint_fast64_t newFactor2 = factor / newFactor1;
 
-            // Deduce the other factor
-            std::uint_fast64_t newFactor2 = latestFactor / newFactor1;
-
-            // Add the two new factors into the list of all factors
-            allFactors.push_back(newFactor1);
-            allFactors.push_back(newFactor2);
+            // Add the two new factors to the list of all factors
+            factors.push_back(newFactor1);
+            factors.push_back(newFactor2);
 
         }
 
-        // Return all prime factors
+        // Sort the list of primes
+        std::sort(primes.begin(), primes.end());
+
+        // Initialize a list of all prime factors
+        std::vector<PrimeFactor> primeFactors;
+
+        // Reserve space for 15 prime factors
+        // An unsigned 64-bit integer can only have 15 prime factors
+        // Because the first 16 primes multiplied together would overflow the 64-bit range
+        primeFactors.reserve(15);
+
+        // Loop through the list of primes
+        for (std::uint_fast64_t index = 0; index < primes.size();) {
+
+            // Initialize the prime factor base and exponent
+            std::uint_fast64_t base = primes[index];
+            std::uint_fast64_t exponent = 0;
+
+            // Check if the next prime is the same as the current prime
+            while (base == primes[index] && index < primes.size()) {
+
+                // Increase the exponent
+                exponent++;
+
+                // Continue with the next prime in the list
+                index++;
+
+            }
+
+            // Add the prime factor
+            primeFactors.emplace_back(base, exponent);
+
+        }
+
+        // Return the list of prime factors
         return primeFactors;
 
     }
