@@ -1,28 +1,21 @@
 #include "Quick64BitPrimes.hpp"
 #include <cstdint>
-#include <initializer_list>
 #include "ModularArithmetic.hpp"
+#include <vector>
 #include <random>
 #include <numeric>
-#include <vector>
 #include <algorithm>
 
 namespace q64bp {
 
     // ============================================================================================
     // Miller-Rabin primality test
-    // https://cp-algorithms.com/algebra/primality_tests.html#miller-rabin-primality-test
+    // Based on: https://cp-algorithms.com/algebra/primality_tests.html#miller-rabin-primality-test
     // ============================================================================================
     bool millerRabinPrimalityTest(std::uint_fast64_t number) {
 
-        // Check if the number is less than 2
-        if (number < 2) {
-
-            // No number less than 2 can be prime
-            // Return false
-            return false;
-
-        }
+        // No number less than two can be prime
+        if (number < 2) { return false; }
 
         // Check small primes directly witch is faster than using the Miller-Rabin primality test
         // Values from https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Testing_against_small_sets_of_bases
@@ -30,30 +23,20 @@ namespace q64bp {
         // But they also happen to work great as a quick check for small primes
         for (std::uint_fast64_t prime : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
 
-            // Check if the number itself is the prime
-            if (number == prime) {
+            // If the number itself is the prime return true
+            if (number == prime) { return true; }
 
-                // Return that the number is a prime
-                return true;
-
-            }
-
-            // Check if the number is divisible by the prime
-            if (number % prime == 0) {
-
-                // Return that the number is not a prime
-                return false;
-
-            }
+            // If the number is divisible by the prime return false
+            if (number % prime == 0) { return false; }
 
         }
 
-        // Initialize the factor and exponent
+        // Initialize the factor and exponent (d & s)
         std::uint_fast64_t factor = number - 1;
         std::uint_fast64_t exponent = 0;
 
         // Loop as long as factor is even using a bitwise AND check
-        while ((factor & 1) == 0) {
+        while (!(factor & 1)) {
 
             // Divide the factor by 2 using a right bit shift
             factor >>= 1;
@@ -67,54 +50,26 @@ namespace q64bp {
         // Values from https://miller-rabin.appspot.com/
         for (std::uint_fast64_t base : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
 
-            // Check if the base is a multiple of the number
-            if (base % number == 0) {
-
-                // Skip this base
-                continue;
-
-            }
+            // If the base is a multiple of the number continue with the next base
+            if (base % number == 0) { continue; }
 
             // Calculate a result using modular exponentiation
             std::uint_fast64_t result = ModularArithmetic::exponentiation(base, factor, number);
 
-            // Check if the result is 1 or number - 1
-            if (result == 1 || result == number - 1) {
+            // If the result is 1 or number - 1 continue with the next base
+            if (result == 1 || result == number - 1) { continue; }
 
-                // Skip this base
-                continue;
-
-            }
-
-            // Flag for checking if the number is a composite
-            bool composite = true;
-
-            // Repeat squaring up to exponent - 1 times
-            for (std::uint_fast64_t repeat = 1; repeat < exponent; repeat++) {
+            // Loop up to exponent - 1 times
+            // Or until the result == number - 1
+            for (std::uint_fast64_t loop = 1; loop < exponent && result != number - 1; loop++) {
 
                 // Square the result using modular multiplication
                 result = ModularArithmetic::multiplication(result, result, number);
 
-                // Check if the result is number - 1
-                if (result == number - 1) {
-
-                    // Set the composite flag to false
-                    composite = false;
-
-                    // Stop the squaring loop immediately
-                    break;
-
-                }
-
             }
 
-            // Check if the number is a composite
-            if (composite) {
-
-                // Return that the number is not a prime
-                return false;
-
-            }
+            // If the result is not number - 1 then the number is a composite so return false
+            if (result != number - 1) { return false; }
 
         }
 
@@ -126,74 +81,40 @@ namespace q64bp {
     // ============================================================================================
     // Prime decomposition using trial division
     // ============================================================================================
-    std::vector<PrimeFactor> trialDivision(std::uint_fast64_t number) {
+    void trialDivision(
+        std::uint_fast64_t number,
+        std::vector<std::uint_fast64_t>& primes
+    ) {
 
-        // Initialize list of prime factors
-        std::vector<PrimeFactor> primeFactors;
+        // Loop as long as the number is divisible by two using a bitwise AND check
+        while (!(number & 1)) {
 
-        // Reserve space for seven prime factors
-        // In a range of 0 to 1'000'000 the number 510'510 has seven prime factors
-        primeFactors.reserve(7);
+            // Divide out the prime factor
+            number /= 2;
 
-        // Check if the number is divisible by two
-        if (number % 2 == 0) {
+            // Add the prime factor to the list of primes
+            primes.push_back(2);
 
-            // Initialize the prime factor exponent
-            std::uint_fast64_t exponent = 0;
+        }
 
-            // Loop until the number is not longer divisible by the prime factor
-            while (number % 2 == 0) {
+        // Loop through every odd factor up to the square root of the number
+        for(std::uint_fast64_t factor = 3; factor * factor <= number; factor += 2) {
+
+            // Loop as long as the number is divisible by the factor
+            while (number % factor == 0) {
 
                 // Divide out the prime factor
-                number /= 2;
+                number /= factor;
 
-                // Increase the prime factor exponent;
-                exponent++;
-
-            }
-
-            // Add the prime factor and its exponent to the list of prime factors
-            primeFactors.emplace_back(2, exponent);
-
-        }
-
-        // Loop through every odd value up to the square root of the number
-        for(std::uint_fast64_t base = 3; base * base <= number; base += 2) {
-
-            // Check if the number is divisible by the base
-            if (number % base == 0) {
-
-                // Initialize the prime factor exponent
-                std::uint_fast64_t exponent = 0;
-
-                // Loop until the number is not longer divisible by the prime factor
-                while (number % base == 0) {
-
-                    // Divide out the prime factor
-                    number /= base;
-
-                    // Increase the prime factor exponent;
-                    exponent++;
-
-                }
-
-                // Add the prime factor and its exponent to the list of prime factors
-                primeFactors.emplace_back(base, exponent);
+                // Add the prime factor to the list of primes
+                primes.push_back(factor);
 
             }
 
         }
 
-        // Check if the number is still more than one
-        if (number > 1) {
-
-            // Add the remaining prime factor
-            primeFactors.emplace_back(number, 1);
-
-        }
-
-        // Return all prime factors
-        return primeFactors;
+        // If the number is more than one, it it is a prime so add it to the list of primes
+        if (number > 1) { primes.push_back(number); }
 
     }
 
@@ -291,13 +212,8 @@ namespace q64bp {
     // ============================================================================================
     std::uint_fast64_t pollardBrentFactorization(std::uint_fast64_t number) {
 
-        // Do a quick safety check if the number is divisible by two
-        if (number % 2 == 0) {
-
-            // Return a factor of two
-            return 2;
-
-        }
+        // If the number is divisible by two return a factor of two
+        if (!(number & 1)) { return 2; }
 
         // Initialize the random number generator
         static std::mt19937_64 rng(std::random_device{}());
@@ -328,12 +244,8 @@ namespace q64bp {
             std::uint_fast64_t constant = constantDistribution(rng);
 
             // Skip constant = number - 2
-            if (constant == number - 2) {
-
-                // By adding one to the constant
-                constant++;
-
-            }
+            // By adding one to the constant
+            if (constant == number - 2) { constant++; }
 
             // Batch size for Brent's optimization (controls how often the greatest common divisor is computed)
             // A value of 128 seems like a good value for all ranges
@@ -419,13 +331,8 @@ namespace q64bp {
 
             }
 
-            // Check if the factor is not the number itself
-            if (factor < number) {
-
-                // Return the nontrivial factor
-                return factor;
-
-            }
+            // Return the factor if it is nontrivial
+            if (factor < number) { return factor; }
 
             // If the factor is still the number itself retry from the top with new random values for the polynomial function
 
@@ -438,32 +345,8 @@ namespace q64bp {
     // ============================================================================================
     std::vector<PrimeFactor> primeDecomposition(std::uint_fast64_t number) {
 
-        // Check if the number is less than four
-        if (number < 4) {
-
-            // No number less than for can be broken down into prime factors
-            // Return no prime factors
-            return {};
-
-        }
-
-        // Check if the number itself is prime
-        if (millerRabinPrimalityTest(number)) {
-
-            // No prime can be broken down into prime factors
-            // Return no prime factors
-            return {};
-
-        }
-
-        // Check if the number is less than 1'000'000
-        if (number < 1'000'000) {
-
-            // Use trial division to break down the number into prime factors
-            // Trial division is generally faster for small number up to around one million
-            return trialDivision(number);
-
-        }
+        // No number less than two can be broken down into prime factors
+        if (number < 2) { return {}; }
 
         // Initialize a list for all factors and all primes
         std::vector<std::uint_fast64_t> factors;
@@ -475,13 +358,8 @@ namespace q64bp {
         factors.reserve(64);
         primes.reserve(64);
 
-        // Get one prime factor of the number and deduce the second factor
-        std::uint_fast64_t factor1 = pollardBrentFactorization(number);
-        std::uint_fast64_t factor2 = number / factor1;
-
-        // Add both factors to the list of all factors
-        factors.push_back(factor1);
-        factors.push_back(factor2);
+        // Add the number to the list of factors
+        factors.push_back(number);
 
         // Loop until there are no more factors
         while (!factors.empty()) {
@@ -497,6 +375,18 @@ namespace q64bp {
 
                 // Add the latest factor to the list of primes
                 primes.push_back(factor);
+
+                // Continue with the next factor
+                continue;
+
+            }
+
+            // Check if the factor is less than 1'000'000
+            if (factor < 1'000'000) {
+
+                // Use trial division to break down the number into prime factors
+                // Trial division is generally faster for small number up to around one million
+                trialDivision(factor, primes);
 
                 // Continue with the next factor
                 continue;
