@@ -27,10 +27,13 @@ int main() {
         auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
 
         // Print a message
-        std::cout << number << " is a prime!" << std::endl;
+        std::cout << number << " is prime!" << std::endl;
 
-        // Print the total test time
-        std::cout << "Total test duration: " << duration.count() << " nanoseconds" << std::endl;
+        // Print the prime factor
+        std::cout << "Prime factors of " << number << ": " << number << "^1" << std::endl;
+
+        // Print the total execution time
+        std::cout << "Total execution time: " << duration.count() << " nanoseconds" << std::endl;
 
         // Exit
         return 0;
@@ -72,8 +75,8 @@ int main() {
 
     }
 
-    // Print the total test time
-    std::cout << std::endl << "Total test duration: " << duration.count() << " nanoseconds" << std::endl;
+    // Print the total execution time
+    std::cout << std::endl << "Total execution time: " << duration.count() << " nanoseconds" << std::endl;
 
     // Exit
     return 0;

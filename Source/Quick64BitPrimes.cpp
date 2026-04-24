@@ -381,11 +381,11 @@ namespace q64bp {
 
             }
 
-            // Check if the factor is less than 1'000'000
-            if (factor < 1'000'000) {
+            // Check if the factor is less than 30'000'000
+            if (factor < 30'000'000) {
 
                 // Use trial division to break down the number into prime factors
-                // Trial division is generally faster for small number up to around one million
+                // Trial division is generally faster for small numbers up to around 30 million
                 trialDivision(factor, primes);
 
                 // Continue with the next factor
