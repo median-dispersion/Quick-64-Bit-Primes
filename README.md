@@ -109,6 +109,16 @@ int main() {
 }
 ```
 
+## Integer types
+
+### `std::uint_fast64_t`
+
+This implementation uses the `std::uint_fast64_t` type wherever possible. This type guarantees at least 64 bits but may map to a larger and faster unsigned integer type if the platform provides one. The code aims to achieve optimal performance across different system architectures. The trade-off is that on systems where wider integer types are more efficient, the memory usage may increase slightly.
+
+### `__uint128_t`
+
+The `__uint128_t` type is an unsigned 128-bit integer type available in GCC and Clang. It is used in parts of the modular arithmetic to safely handle large values without causing overflows. On compilers that do not support `__uint128_t`, a fallback method is used for modular multiplication. This fallback relies on repeated addition to avoid overflows and is typically around 10 times slower than using the 128-bit integer type. Therefore, availability of the `__uint128_t` type is critical for achieving optimal performance.
+
 ## Requirements
 
 This repository was developed and tested on Debian and requires the following packages to be installed:
