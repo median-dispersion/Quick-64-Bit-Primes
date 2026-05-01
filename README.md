@@ -1,5 +1,18 @@
 # Quick 64-Bit Primes
 
+<p align="center">
+    <a href="./Assets/Banner.svg">
+        <img src="./Assets/Banner.svg" style="width: 900px;">
+    </a>
+</p>
+
+<a href="./LICENSE">
+    <img alt="GitHub License" src="https://img.shields.io/github/license/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge">
+</a>
+<a href="https://github.com/median-dispersion/Quick-64-Bit-Primes/releases/latest">
+    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge">
+</a>
+
 This repository contains a C++ implementation of the [Miller-Rabin primality test](https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test) and [Pollard's rho prime decomposition / factorization algorithm](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm) using [Brent's cycle detection](https://en.wikipedia.org/wiki/Cycle_detection#Brent.27s_algorithm) method for the full range of unsigned 64-bit integers. It accepts a number in between $0$ and $2^{64}-1$ and, depending on the chosen method, either determines whether the number is prime or returns all of its prime factors. The runtime ranges from just a few nanoseconds up to about 20 microseconds in the worst case for a full 64-bit value.
 
 ## Primality test

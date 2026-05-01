@@ -86,6 +86,11 @@ namespace q64bp {
         std::vector<std::uint_fast64_t>& primes
     ) {
 
+        // Any number passed to this function must be:
+        // number >= 2
+        // number != prime
+        // This is guaranteed by calling this function through primeDecomposition()
+
         // Loop as long as the number is divisible by two using a bitwise AND check
         while (!(number & 1)) {
 
@@ -113,7 +118,7 @@ namespace q64bp {
 
         }
 
-        // If the number is more than one, it it is a prime so add it to the list of primes
+        // If the number is more than one, it is a prime so add it to the list of primes
         if (number > 1) { primes.push_back(number); }
 
     }
@@ -135,13 +140,16 @@ namespace q64bp {
     // ============================================================================================
     /* std::uint_fast64_t pollardFloydFactorization(std::uint_fast64_t number) {
 
-        // Do a quick safety check if the number is divisible by two
-        if (number % 2 == 0) {
+        // This function is a legacy drop in replacement for pollardBrentFactorization()
+        // It uses Floyd's cycle detection method and is therefore slightly slower
 
-            // Return a factor of two
-            return 2;
+        // Any number passed to this function must be:
+        // number >= 2
+        // number != prime
+        // This is guaranteed by calling this function through primeDecomposition()
 
-        }
+        // If the number is divisible by two return a factor of two
+        if (!(number & 1)) { return 2; }
 
         // Initialize the random number generator
         static std::mt19937_64 rng(std::random_device{}());
@@ -169,12 +177,8 @@ namespace q64bp {
             std::uint_fast64_t constant = constantDistribution(rng);
 
             // Skip constant = number - 2
-            if (constant == number - 2) {
-
-                // By adding one to the constant
-                constant++;
-
-            }
+            // By adding one to the constant
+            if (constant == number - 2) { constant++; }
 
             // Initialize the factor
             std::uint_fast64_t factor = 1;
@@ -193,13 +197,8 @@ namespace q64bp {
 
             }
 
-            // Check if the factor is not the number itself
-            if (factor < number) {
-
-                // Return the nontrivial factor
-                return factor;
-
-            }
+            // Return the factor if it is nontrivial
+            if (factor < number) { return factor; }
 
             // If the factor is the number itself retry from the top with new random values for the polynomial function
 
@@ -211,6 +210,11 @@ namespace q64bp {
     // Integer factorization using Pollard's rho algorithm and Brent's cycle detection method
     // ============================================================================================
     std::uint_fast64_t pollardBrentFactorization(std::uint_fast64_t number) {
+
+        // Any number passed to this function must be:
+        // number >= 2
+        // number != prime
+        // This is guaranteed by calling this function through primeDecomposition()
 
         // If the number is divisible by two return a factor of two
         if (!(number & 1)) { return 2; }
