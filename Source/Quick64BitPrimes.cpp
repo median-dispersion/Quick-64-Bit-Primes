@@ -9,7 +9,7 @@
 namespace q64bp {
 
     // ============================================================================================
-    // Miller-Rabin primality test
+    // Check if a number is prime using the Miller-Rabin primality test
     // Based on: https://cp-algorithms.com/algebra/primality_tests.html#miller-rabin-primality-test
     // ============================================================================================
     bool millerRabinPrimalityTest(std::uint_fast64_t number) {
@@ -345,7 +345,7 @@ namespace q64bp {
     }
 
     // ============================================================================================
-    // Prime decomposition
+    // Decompose a number into its prime factors
     // ============================================================================================
     std::vector<PrimeFactor> primeDecomposition(std::uint_fast64_t number) {
 
@@ -443,6 +443,136 @@ namespace q64bp {
 
         // Return the list of prime factors
         return primeFactors;
+
+    }
+
+    // ============================================================================================
+    // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
+    // Based on the GO implementation: https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Go
+    // ============================================================================================
+    std::vector<std::uint_fast64_t> tonelliShanksSquareRoot(
+        std::uint_fast64_t number,
+        std::uint_fast64_t prime
+    ) {
+
+        // If the provided value is not prime return no valid solutions
+        if (!millerRabinPrimalityTest(prime)) { return {}; }
+
+        // If the prime is two return the trivial solution
+        if (prime == 2) { return {number % 2}; }
+
+        // If the number exceeds the prime reduce it under modular arithmetic
+        if (number >= prime) { number %= prime; }
+
+        // If the number is zero return the trivial solution
+        if (number == 0) { return {0}; }
+
+        // If the number is a quadratic non residue return no solution
+        if (ModularArithmetic::exponentiation(number, (prime - 1) >> 1, prime) != 1) { return {}; }
+
+        // If the prime is in the form prime ≡ 3 (mod 4) use the fast path
+        if ((prime & 3) == 3) {
+
+            // Calculate the square root directly
+            std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (prime + 1) >> 2, prime);
+
+            // Return the result
+            return {squareRoot, prime - squareRoot};
+
+        }
+
+        // If the prime is in the form prime ≡ 5 (mod 8) use the fast path
+        if ((prime & 7) == 5) {
+
+            // For the case that prime ≡ 5 (mod 8) there are two different direct calculations
+            // One for the case that the Legendre symbol is 1 and one for if it is -1
+            // This path always assumes the Legendre symbol is 1, then calculates the first square root
+            // It checks if the square root is valid and if not corrects the result to match the second case
+            // After that it returns the valid square roots
+
+            // Calculate the square root directly
+            std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (prime + 3) >> 3, prime);
+
+            // Check if the square root is in the incorrect form
+            if (ModularArithmetic::multiplication(squareRoot, squareRoot, prime) != number) {
+
+                // Calculate the correction factor
+                std::uint_fast64_t correction = ModularArithmetic::exponentiation(2, (prime - 1) >> 2, prime);
+
+                // Apply the correction factor
+                squareRoot = ModularArithmetic::multiplication(squareRoot, correction, prime);
+
+            }
+
+            // Return the result
+            return {squareRoot, prime - squareRoot};
+
+        }
+
+        // Initialize the factor and exponent
+        std::uint_fast64_t factor = prime - 1;
+        std::uint_fast64_t exponent = 0;
+
+        // Loop as long as factor is even using a bitwise AND check
+        while (!(factor & 1)) {
+
+            // Divide the factor by 2 using a right bit shift
+            factor >>= 1;
+
+            // Increase exponent
+            exponent++;
+
+        }
+
+        // Initialize the quadratic non-residue
+        std::uint_fast64_t quadraticNonResidue = 2;
+
+        // Find a quadratic non-residue
+        while (ModularArithmetic::exponentiation(quadraticNonResidue, (prime - 1) >> 1, prime) != prime - 1) { quadraticNonResidue++; }
+
+        // Initialize the variables for the Tonelli-Shanks iteration
+        std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (factor + 1) >> 1, prime);
+        std::uint_fast64_t currentFactor = ModularArithmetic::exponentiation(quadraticNonResidue, factor, prime);
+        std::uint_fast64_t currentResidue = ModularArithmetic::exponentiation(number, factor, prime);
+        std::uint_fast64_t currentExponent = exponent;
+
+        // Loop until a solution is found
+        while (currentResidue != 1) {
+
+            // Initialize variables for exponent search
+            std::uint_fast64_t temporaryFactor = currentResidue;
+            std::uint_fast64_t newExponent = 0;
+
+            // Find the smallest new exponent such that t^(2^i) ≡ 1 (mod p)
+            while (temporaryFactor != 1 && newExponent + 1 < currentExponent) {
+
+                temporaryFactor = ModularArithmetic::multiplication(temporaryFactor, temporaryFactor, prime);
+                newExponent++;
+
+            }
+
+            // Initialize variables for factor search
+            std::uint_fast64_t temporaryExponent = currentExponent - newExponent - 1;
+            std::uint_fast64_t newFactor = currentFactor;
+
+            // Find the new factor such that b = c^(2^(m - i - 1)) mod p
+            while (temporaryExponent) {
+
+                newFactor = ModularArithmetic::multiplication(newFactor, newFactor, prime);
+                temporaryExponent--;
+
+            }
+
+            // Update variables according to the algorithm
+            squareRoot = ModularArithmetic::multiplication(squareRoot, newFactor, prime);
+            currentFactor = ModularArithmetic::multiplication(newFactor, newFactor, prime);
+            currentResidue = ModularArithmetic::multiplication(currentResidue, currentFactor, prime);
+            currentExponent = newExponent;
+
+        }
+
+        // Return the result
+        return {squareRoot, prime - squareRoot};
 
     }
 
