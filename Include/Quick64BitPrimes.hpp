@@ -1,7 +1,7 @@
 #ifndef QUICK_64_BIT_PRIMES_HPP
 #define QUICK_64_BIT_PRIMES_HPP
 
-#include <cstdint>
+#include "TypeDefinitions.hpp"
 #include <vector>
 
 namespace q64bp {
@@ -10,26 +10,26 @@ namespace q64bp {
     // Prime factor structure
     // ============================================================================================
     struct PrimeFactor {
-        std::uint_fast64_t base;
-        std::uint_fast64_t exponent;
+        ui64 base;
+        ui64 exponent;
     };
 
     // ============================================================================================
     // Check if a number is prime using the Miller-Rabin primality test
     // ============================================================================================
-    bool millerRabinPrimalityTest(std::uint_fast64_t number);
+    bool millerRabinPrimalityTest(ui64 number);
 
     // ============================================================================================
     // Decompose a number into its prime factors
     // ============================================================================================
-    std::vector<PrimeFactor> primeDecomposition(std::uint_fast64_t number);
+    std::vector<PrimeFactor> primeDecomposition(ui64 number);
 
     // ============================================================================================
     // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
     // ============================================================================================
-    std::vector<std::uint_fast64_t> tonelliShanksSquareRoot(
-        std::uint_fast64_t number,
-        std::uint_fast64_t prime
+    std::vector<ui64> tonelliShanksSquareRoot(
+        ui64 number,
+        ui64 prime
     );
 
 }

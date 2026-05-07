@@ -1,6 +1,7 @@
 #include "Quick64BitPrimes.hpp"
-#include <cstdint>
+#include "TypeDefinitions.hpp"
 #include "ModularArithmetic.hpp"
+#include "HelperFunctions.hpp"
 #include <vector>
 #include <random>
 #include <numeric>
@@ -12,7 +13,7 @@ namespace q64bp {
     // Check if a number is prime using the Miller-Rabin primality test
     // Based on: https://cp-algorithms.com/algebra/primality_tests.html#miller-rabin-primality-test
     // ============================================================================================
-    bool millerRabinPrimalityTest(std::uint_fast64_t number) {
+    bool millerRabinPrimalityTest(ui64 number) {
 
         // No number less than two can be prime
         if (number < 2) { return false; }
@@ -21,7 +22,7 @@ namespace q64bp {
         // Values from https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Testing_against_small_sets_of_bases
         // These value are technically intended to be used as bases in the Miller-Rabin primality test
         // But they also happen to work great as a quick check for small primes
-        for (std::uint_fast64_t prime : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
+        for (ui64 prime : {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37}) {
 
             // If the number itself is the prime return true
             if (number == prime) { return true; }
@@ -32,8 +33,8 @@ namespace q64bp {
         }
 
         // Initialize the factor and exponent (d & s)
-        std::uint_fast64_t factor = number - 1;
-        std::uint_fast64_t exponent = 0;
+        ui64 factor = number - 1;
+        ui64 exponent = 0;
 
         // Loop as long as factor is even using a bitwise AND check
         while (!(factor & 1)) {
@@ -48,20 +49,20 @@ namespace q64bp {
 
         // Deterministic set of bases that works for all 64-bit integers
         // Values from https://miller-rabin.appspot.com/
-        for (std::uint_fast64_t base : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
+        for (ui64 base : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
 
             // If the base is a multiple of the number continue with the next base
             if (base % number == 0) { continue; }
 
             // Calculate a result using modular exponentiation
-            std::uint_fast64_t result = ModularArithmetic::exponentiation(base, factor, number);
+            ui64 result = ModularArithmetic::exponentiation(base, factor, number);
 
             // If the result is 1 or number - 1 continue with the next base
             if (result == 1 || result == number - 1) { continue; }
 
             // Loop up to exponent - 1 times
             // Or until the result == number - 1
-            for (std::uint_fast64_t loop = 1; loop < exponent && result != number - 1; loop++) {
+            for (ui64 loop = 1; loop < exponent && result != number - 1; loop++) {
 
                 // Square the result using modular multiplication
                 result = ModularArithmetic::multiplication(result, result, number);
@@ -82,8 +83,8 @@ namespace q64bp {
     // Prime decomposition using trial division
     // ============================================================================================
     void trialDivision(
-        std::uint_fast64_t number,
-        std::vector<std::uint_fast64_t>& primes
+        ui64 number,
+        std::vector<ui64>& primes
     ) {
 
         // Any number passed to this function must be:
@@ -103,7 +104,7 @@ namespace q64bp {
         }
 
         // Loop through every odd factor up to the square root of the number
-        for(std::uint_fast64_t factor = 3; factor * factor <= number; factor += 2) {
+        for(ui64 factor = 3; factor * factor <= number; factor += 2) {
 
             // Loop as long as the number is divisible by the factor
             while (number % factor == 0) {
@@ -124,21 +125,10 @@ namespace q64bp {
     }
 
     // ============================================================================================
-    // Polynomial function f(x) = (x² + c) mod m
-    // ============================================================================================
-    std::uint_fast64_t polynomial(
-        std::uint_fast64_t variable,
-        std::uint_fast64_t constant,
-        std::uint_fast64_t modulus
-    ) {
-        return ModularArithmetic::addition(ModularArithmetic::multiplication(variable, variable, modulus), constant, modulus);
-    }
-
-    // ============================================================================================
     // Integer factorization using Pollard's rho algorithm and Floyd's cycle detection method
     // https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm#Algorithm
     // ============================================================================================
-    /* std::uint_fast64_t pollardFloydFactorization(std::uint_fast64_t number) {
+    /* ui64 pollardFloydFactorization(ui64 number) {
 
         // This function is a legacy drop in replacement for pollardBrentFactorization()
         // It uses Floyd's cycle detection method and is therefore slightly slower
@@ -157,40 +147,40 @@ namespace q64bp {
         // Get a uniform distribution to choose a random starting postion for the variable of the polynomial function
         // The range is 2 to number - 2
         // This is to avoid trivial or degenerate cases
-        std::uniform_int_distribution<std::uint_fast64_t> variableDistribution(2, number - 2);
+        std::uniform_int_distribution<ui64> variableDistribution(2, number - 2);
 
         // Get a uniform distribution to choose a random constant for the polynomial function
         // The range is 1 to number - 1
         // Defined as 1 to number - 2 because number - 2 will later be skipped by adding one
-        std::uniform_int_distribution<std::uint_fast64_t> constantDistribution(1, number - 2);
+        std::uniform_int_distribution<ui64> constantDistribution(1, number - 2);
 
         // Loop until a nontrivial factor is found
         while (true) {
 
             // Set the tortoise to a random starting position in the allowed range
-            std::uint_fast64_t tortoise = variableDistribution(rng);
+            ui64 tortoise = variableDistribution(rng);
 
             // Set the hare to the same starting position as the tortoise
-            std::uint_fast64_t hare = tortoise;
+            ui64 hare = tortoise;
 
             // Get a random value in the allowed range for the constant in the polynomial function
-            std::uint_fast64_t constant = constantDistribution(rng);
+            ui64 constant = constantDistribution(rng);
 
             // Skip constant = number - 2
             // By adding one to the constant
             if (constant == number - 2) { constant++; }
 
             // Initialize the factor
-            std::uint_fast64_t factor = 1;
+            ui64 factor = 1;
 
             // Loop until a factor is found
             while (factor == 1) {
 
                 // Advance the tortoise
-                tortoise = polynomial(tortoise, constant, number);
+                tortoise = HelperFunctions::modularPolynomial(tortoise, constant, number);
 
                 // Advance the hare twice as much as the tortoise
-                hare = polynomial(polynomial(hare, constant, number), constant, number);
+                hare = HelperFunctions::modularPolynomial(HelperFunctions::modularPolynomial(hare, constant, number), constant, number);
 
                 // Get the greatest common divisor between |tortoise - hare| and the number
                 factor = std::gcd(tortoise < hare ? hare - tortoise : tortoise - hare, number);
@@ -209,7 +199,7 @@ namespace q64bp {
     // ============================================================================================
     // Integer factorization using Pollard's rho algorithm and Brent's cycle detection method
     // ============================================================================================
-    std::uint_fast64_t pollardBrentFactorization(std::uint_fast64_t number) {
+    ui64 pollardBrentFactorization(ui64 number) {
 
         // Any number passed to this function must be:
         // number >= 2
@@ -225,27 +215,27 @@ namespace q64bp {
         // Get a uniform distribution to choose a random starting postion for the variable of the polynomial function
         // The range is 2 to number - 2
         // This is to avoid trivial or degenerate cases
-        std::uniform_int_distribution<std::uint_fast64_t> variableDistribution(2, number - 2);
+        std::uniform_int_distribution<ui64> variableDistribution(2, number - 2);
 
         // Get a uniform distribution to choose a random constant for the polynomial function
         // The range is 1 to number - 1
         // Defined as 1 to number - 2 because number - 2 will later be skipped by adding one
-        std::uniform_int_distribution<std::uint_fast64_t> constantDistribution(1, number - 2);
+        std::uniform_int_distribution<ui64> constantDistribution(1, number - 2);
 
         // Loop until a nontrivial factor is found
         while (true) {
 
             // Set the tortoise to a random starting position in the allowed range
-            std::uint_fast64_t tortoise = variableDistribution(rng);
+            ui64 tortoise = variableDistribution(rng);
 
             // Set the hare to the same starting position as the tortoise
-            std::uint_fast64_t hare = tortoise;
+            ui64 hare = tortoise;
 
             // Set the backup position to the position of the tortoise and hare
-            std::uint_fast64_t backup = tortoise;
+            ui64 backup = tortoise;
 
             // Get a random value in the allowed range for the constant in the polynomial function
-            std::uint_fast64_t constant = constantDistribution(rng);
+            ui64 constant = constantDistribution(rng);
 
             // Skip constant = number - 2
             // By adding one to the constant
@@ -253,16 +243,16 @@ namespace q64bp {
 
             // Batch size for Brent's optimization (controls how often the greatest common divisor is computed)
             // A value of 128 seems like a good value for all ranges
-            std::uint_fast64_t batchSize = 128;
+            ui64 batchSize = 128;
 
             // Initialize cycle length (doubles each phase)
-            std::uint_fast64_t phaseLength = 1;
+            ui64 phaseLength = 1;
 
             // Initialize the product of differences (used for batched greatest common divisor calculations)
-            std::uint_fast64_t product = 1;
+            ui64 product = 1;
 
             // Initialize the factor
-            std::uint_fast64_t factor = 1;
+            ui64 factor = 1;
 
             // Loop until a factor is found
             while (factor == 1) {
@@ -271,15 +261,15 @@ namespace q64bp {
                 tortoise = hare;
 
                 // Advance hare by the phase length (explore sequence)
-                for (std::uint_fast64_t index = 0; index < phaseLength; index++) {
+                for (ui64 index = 0; index < phaseLength; index++) {
 
                     // Advance the hare position
-                    hare = polynomial(hare, constant, number);
+                    hare = HelperFunctions::modularPolynomial(hare, constant, number);
 
                 }
 
                 // Track how many steps have been taken
-                std::uint_fast64_t step = 0;
+                ui64 step = 0;
 
                 // Process the phase in batches
                 while (step < phaseLength && factor == 1) {
@@ -288,10 +278,10 @@ namespace q64bp {
                     backup = hare;
 
                     // Process up to the batch size or the remaining steps in the phase
-                    for (std::uint_fast64_t index = 0; index < batchSize && index < phaseLength - step; index++) {
+                    for (ui64 index = 0; index < batchSize && index < phaseLength - step; index++) {
 
                         // Advance the hare position
-                        hare = polynomial(hare, constant, number);
+                        hare = HelperFunctions::modularPolynomial(hare, constant, number);
 
                         // Multiply accumulated product by |tortoise - hare| mod number
                         product = ModularArithmetic::multiplication(
@@ -322,7 +312,7 @@ namespace q64bp {
                 do {
 
                     // Advance the backup position one step at a time
-                    backup = polynomial(backup, constant, number);
+                    backup = HelperFunctions::modularPolynomial(backup, constant, number);
 
                     // Compute greatest common divisor of |tortoise - backup| and the number
                     factor = std::gcd(
@@ -347,14 +337,14 @@ namespace q64bp {
     // ============================================================================================
     // Decompose a number into its prime factors
     // ============================================================================================
-    std::vector<PrimeFactor> primeDecomposition(std::uint_fast64_t number) {
+    std::vector<PrimeFactor> primeDecomposition(ui64 number) {
 
         // No number less than two can be broken down into prime factors
         if (number < 2) { return {}; }
 
         // Initialize a list for all factors and all primes
-        std::vector<std::uint_fast64_t> factors;
-        std::vector<std::uint_fast64_t> primes;
+        std::vector<ui64> factors;
+        std::vector<ui64> primes;
 
         // Reserve size for 64 entries
         // An unsigned 64-bit integer can only have 64 factors
@@ -369,7 +359,7 @@ namespace q64bp {
         while (!factors.empty()) {
 
             // Get the latest factor from the list of all factors
-            std::uint_fast64_t factor = factors.back();
+            ui64 factor = factors.back();
 
             // Remove the latest factor from the list of all factors
             factors.pop_back();
@@ -398,8 +388,8 @@ namespace q64bp {
             }
 
             // Break down the latest factor into a new factor and deduce the other new factor
-            std::uint_fast64_t newFactor1 = pollardBrentFactorization(factor);
-            std::uint_fast64_t newFactor2 = factor / newFactor1;
+            ui64 newFactor1 = pollardBrentFactorization(factor);
+            ui64 newFactor2 = factor / newFactor1;
 
             // Add the two new factors to the list of all factors
             factors.push_back(newFactor1);
@@ -419,11 +409,11 @@ namespace q64bp {
         primeFactors.reserve(15);
 
         // Loop through the list of primes
-        for (std::uint_fast64_t index = 0; index < primes.size();) {
+        for (ui64 index = 0; index < primes.size();) {
 
             // Initialize the prime factor base and exponent
-            std::uint_fast64_t base = primes[index];
-            std::uint_fast64_t exponent = 0;
+            ui64 base = primes[index];
+            ui64 exponent = 0;
 
             // Check if the next prime is the same as the current prime
             while (base == primes[index] && index < primes.size()) {
@@ -450,9 +440,9 @@ namespace q64bp {
     // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
     // Based on the GO implementation: https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Go
     // ============================================================================================
-    std::vector<std::uint_fast64_t> tonelliShanksSquareRoot(
-        std::uint_fast64_t number,
-        std::uint_fast64_t prime
+    std::vector<ui64> tonelliShanksSquareRoot(
+        ui64 number,
+        ui64 prime
     ) {
 
         // If the provided value is not prime return no valid solutions
@@ -474,7 +464,7 @@ namespace q64bp {
         if ((prime & 3) == 3) {
 
             // Calculate the square root directly
-            std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (prime + 1) >> 2, prime);
+            ui64 squareRoot = ModularArithmetic::exponentiation(number, (prime + 1) >> 2, prime);
 
             // Return the result
             return {squareRoot, prime - squareRoot};
@@ -491,13 +481,13 @@ namespace q64bp {
             // After that it returns the valid square roots
 
             // Calculate the square root directly
-            std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (prime + 3) >> 3, prime);
+            ui64 squareRoot = ModularArithmetic::exponentiation(number, (prime + 3) >> 3, prime);
 
             // Check if the square root is in the incorrect form
             if (ModularArithmetic::multiplication(squareRoot, squareRoot, prime) != number) {
 
                 // Calculate the correction factor
-                std::uint_fast64_t correction = ModularArithmetic::exponentiation(2, (prime - 1) >> 2, prime);
+                ui64 correction = ModularArithmetic::exponentiation(2, (prime - 1) >> 2, prime);
 
                 // Apply the correction factor
                 squareRoot = ModularArithmetic::multiplication(squareRoot, correction, prime);
@@ -510,8 +500,8 @@ namespace q64bp {
         }
 
         // Initialize the factor and exponent
-        std::uint_fast64_t factor = prime - 1;
-        std::uint_fast64_t exponent = 0;
+        ui64 factor = prime - 1;
+        ui64 exponent = 0;
 
         // Loop as long as factor is even using a bitwise AND check
         while (!(factor & 1)) {
@@ -525,23 +515,23 @@ namespace q64bp {
         }
 
         // Initialize the quadratic non-residue
-        std::uint_fast64_t quadraticNonResidue = 2;
+        ui64 quadraticNonResidue = 2;
 
         // Find a quadratic non-residue
         while (ModularArithmetic::exponentiation(quadraticNonResidue, (prime - 1) >> 1, prime) != prime - 1) { quadraticNonResidue++; }
 
         // Initialize the variables for the Tonelli-Shanks iteration
-        std::uint_fast64_t squareRoot = ModularArithmetic::exponentiation(number, (factor + 1) >> 1, prime);
-        std::uint_fast64_t currentFactor = ModularArithmetic::exponentiation(quadraticNonResidue, factor, prime);
-        std::uint_fast64_t currentResidue = ModularArithmetic::exponentiation(number, factor, prime);
-        std::uint_fast64_t currentExponent = exponent;
+        ui64 squareRoot = ModularArithmetic::exponentiation(number, (factor + 1) >> 1, prime);
+        ui64 currentFactor = ModularArithmetic::exponentiation(quadraticNonResidue, factor, prime);
+        ui64 currentResidue = ModularArithmetic::exponentiation(number, factor, prime);
+        ui64 currentExponent = exponent;
 
         // Loop until a solution is found
         while (currentResidue != 1) {
 
             // Initialize variables for exponent search
-            std::uint_fast64_t temporaryFactor = currentResidue;
-            std::uint_fast64_t newExponent = 0;
+            ui64 temporaryFactor = currentResidue;
+            ui64 newExponent = 0;
 
             // Find the smallest new exponent such that t^(2^i) ≡ 1 (mod p)
             while (temporaryFactor != 1 && newExponent + 1 < currentExponent) {
@@ -552,8 +542,8 @@ namespace q64bp {
             }
 
             // Initialize variables for factor search
-            std::uint_fast64_t temporaryExponent = currentExponent - newExponent - 1;
-            std::uint_fast64_t newFactor = currentFactor;
+            ui64 temporaryExponent = currentExponent - newExponent - 1;
+            ui64 newFactor = currentFactor;
 
             // Find the new factor such that b = c^(2^(m - i - 1)) mod p
             while (temporaryExponent) {

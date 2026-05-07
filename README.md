@@ -6,12 +6,8 @@
     </a>
 </p>
 
-<a href="./LICENSE">
-    <img alt="GitHub License" src="https://img.shields.io/github/license/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge">
-</a>
-<a href="https://github.com/median-dispersion/Quick-64-Bit-Primes/releases/latest">
-    <img alt="GitHub Release" src="https://img.shields.io/github/v/release/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge">
-</a>
+<a href="./LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge"></a>
+<a href="https://github.com/median-dispersion/Quick-64-Bit-Primes/releases/latest"><img alt="GitHub Release" src="https://img.shields.io/github/v/release/median-dispersion/Quick-64-Bit-Primes?style=for-the-badge"></a>
 
 This repository contains a C++ implementation of the [Miller-Rabin primality test](https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test) and [Pollard's rho prime decomposition / factorization algorithm](https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm) using [Brent's cycle detection](https://en.wikipedia.org/wiki/Cycle_detection#Brent.27s_algorithm) method for the full range of unsigned 64-bit integers. It accepts a number in between $0$ and $2^{64}-1$ and, depending on the chosen method, either determines whether the number is prime or returns all of its prime factors. The runtime ranges from just a few nanoseconds up to about 20 microseconds in the worst case for a full 64-bit value.
 
@@ -42,7 +38,7 @@ The benchmark results show that almost any number within the 64-bit integer rang
 #### Function prototype
 
 ```c++
-bool q64bp::millerRabinPrimalityTest(std::uint_fast64_t number);
+bool q64bp::millerRabinPrimalityTest(q64bp::ui64 number);
 ```
 
 #### Example
@@ -97,7 +93,7 @@ It also shows that trial division is faster for numbers up to about $2^{25}$, or
 #### Function prototype
 
 ```c++
-std::vector<q64bp::PrimeFactor> q64bp::primeDecomposition(std::uint_fast64_t number);
+std::vector<q64bp::PrimeFactor> q64bp::primeDecomposition(q64bp::ui64 number);
 ```
 
 #### Example
@@ -122,15 +118,15 @@ int main() {
 }
 ```
 
-## Integer types
+## Integer types and definitions
 
-### `std::uint_fast64_t`
+### `std::uint_fast64_t` & `q64bp::ui64`
 
-This implementation uses the `std::uint_fast64_t` type wherever possible. This type guarantees at least 64 bits but may map to a larger and faster unsigned integer type if the platform provides one. The code aims to achieve optimal performance across different system architectures. The trade-off is that on systems where wider integer types are more efficient, the memory usage may increase slightly.
+This implementation uses the `std::uint_fast64_t` type wherever possible. This type guarantees at least 64 bits but may map to a larger and faster unsigned integer type if the platform provides one. The code aims to achieve optimal performance across different system architectures. The trade-off is that on systems where wider integer types are more efficient, the memory usage may increase slightly. The alias `q64bp::ui64` is defined in [Include/TypeDefinitions.hpp](./Include/TypeDefinitions.hpp) and can be changed from `std::uint_fast64_t` to `std::uint64_t` if a consistent memory footprint is preferred.
 
-### `__uint128_t`
+### `__uint128_t` & `q64bp::ui128`
 
-The `__uint128_t` type is an unsigned 128-bit integer type available in GCC and Clang. It is used in parts of the modular arithmetic to safely handle large values without causing overflows. On compilers that do not support `__uint128_t`, a fallback method is used for modular multiplication. This fallback relies on repeated addition to avoid overflows and is typically around 10 times slower than using the 128-bit integer type. Therefore, availability of the `__uint128_t` type is critical for achieving optimal performance.
+The `__uint128_t` type is an unsigned 128-bit integer type available in GCC and Clang. It is used in parts of the modular arithmetic to safely handle large values without causing overflows. On compilers that do not support `__uint128_t`, a fallback method is used for modular multiplication. This fallback relies on repeated addition to avoid overflows and is typically around 10 times slower than using the 128-bit integer type. Therefore, availability of the `__uint128_t` type is critical for achieving optimal performance. The alias `q64bp::ui128` is defined in [Include/TypeDefinitions.hpp](./Include/TypeDefinitions.hpp).
 
 ## Requirements
 

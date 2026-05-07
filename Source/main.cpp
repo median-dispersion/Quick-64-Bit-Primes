@@ -1,12 +1,13 @@
-#include <cstdint>
+#include "TypeDefinitions.hpp"
 #include <iostream>
 #include <chrono>
 #include "Quick64BitPrimes.hpp"
+#include <vector>
 
 int main() {
 
     // Number to test
-    std::uint_fast64_t number;
+    q64bp::ui64 number;
 
     // Print a message
     std::cout << "Enter a number to test: ";
@@ -15,16 +16,16 @@ int main() {
     std::cin >> number;
 
     // Capture the test start time
-    auto start = std::chrono::high_resolution_clock::now();
+    auto startTime = std::chrono::high_resolution_clock::now();
 
     // Check if the number is a prime using the Miller-Rabin primality test
     if (q64bp::millerRabinPrimalityTest(number)) {
 
         // Capture the test stop time
-        auto stop = std::chrono::high_resolution_clock::now();
+        auto stopTime = std::chrono::high_resolution_clock::now();
 
         // Calculate the duration between the start and stop time
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stopTime - startTime);
 
         // Print a message
         std::cout << number << " is prime!" << std::endl;
@@ -44,13 +45,13 @@ int main() {
     std::vector<q64bp::PrimeFactor> primeFactors = q64bp::primeDecomposition(number);
 
     // Capture the test stop time
-    auto stop = std::chrono::high_resolution_clock::now();
+    auto stopTime = std::chrono::high_resolution_clock::now();
 
     // Calculate the duration between the start and stop time
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stopTime - startTime);
 
     // Counter for counting the number of prime factors
-    std::uint_fast64_t counter = 0;
+    q64bp::ui64 counter = 0;
 
     // Print messages
     std::cout << number << " is not prime" << std::endl;

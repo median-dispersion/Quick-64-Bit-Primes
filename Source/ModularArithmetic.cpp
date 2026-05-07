@@ -1,5 +1,5 @@
 #include "ModularArithmetic.hpp"
-#include <cstdint>
+#include "TypeDefinitions.hpp"
 #include <stdexcept>
 #include <algorithm>
 
@@ -8,10 +8,10 @@ namespace q64bp::ModularArithmetic {
     // ============================================================================================
     // Modular addition
     // ============================================================================================
-    std::uint_fast64_t addition(
-        std::uint_fast64_t addend1,
-        std::uint_fast64_t addend2,
-        std::uint_fast64_t modulus
+    ui64 addition(
+        ui64 addend1,
+        ui64 addend2,
+        ui64 modulus
     ) {
 
         // Throw an exception if the modulus is zero
@@ -43,17 +43,17 @@ namespace q64bp::ModularArithmetic {
     // ============================================================================================
     // Modular multiplication using the __uint128_t type
     // ============================================================================================
-    std::uint_fast64_t multiplication(
-        std::uint_fast64_t factor1,
-        std::uint_fast64_t factor2,
-        std::uint_fast64_t modulus
+    ui64 multiplication(
+        ui64 factor1,
+        ui64 factor2,
+        ui64 modulus
     ) {
 
         // Throw an exception if the modulus is zero
         if (modulus == 0) { throw std::invalid_argument("Modulus must be non-zero!"); }
 
         // Return the result
-        return static_cast<__uint128_t>(factor1) * factor2 % modulus;
+        return static_cast<ui128>(factor1) * factor2 % modulus;
 
     }
 
@@ -64,17 +64,17 @@ namespace q64bp::ModularArithmetic {
     // ============================================================================================
     // Modular multiplication
     // ============================================================================================
-    std::uint_fast64_t multiplication(
-        std::uint_fast64_t factor1,
-        std::uint_fast64_t factor2,
-        std::uint_fast64_t modulus
+    ui64 multiplication(
+        ui64 factor1,
+        ui64 factor2,
+        ui64 modulus
     ) {
 
         // Throw an exception if the modulus is zero
         if (modulus == 0) { throw std::invalid_argument("Modulus must be non-zero!"); }
 
         // Initialize the result
-        std::uint_fast64_t result = 0;
+        ui64 result = 0;
 
         // Reduce the factors if they exceed the modulus
         if (factor1 >= modulus) { factor1 %= modulus; }
@@ -138,10 +138,10 @@ namespace q64bp::ModularArithmetic {
     // Modular exponentiation
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
     // ============================================================================================
-    std::uint_fast64_t exponentiation(
-        std::uint_fast64_t base,
-        std::uint_fast64_t exponent,
-        std::uint_fast64_t modulus
+    ui64 exponentiation(
+        ui64 base,
+        ui64 exponent,
+        ui64 modulus
     ) {
 
         // Throw an exception if the modulus is zero
@@ -151,7 +151,7 @@ namespace q64bp::ModularArithmetic {
         if (modulus == 1) { return 0; }
 
         // Initialize the result
-        std::uint_fast64_t result = 1;
+        ui64 result = 1;
 
         // Reduce base if it exceeds the modulus
         if (base >= modulus) { base %= modulus; }
