@@ -32,6 +32,11 @@ namespace q64bp {
         ui64 prime
     );
 
+    // ============================================================================================
+    // Get Fermat's sum of two squares representation of a prime
+    // ============================================================================================
+    std::vector<ui64> fermatSumOfTwoSquares(ui64 prime);
+
 }
 
 #endif

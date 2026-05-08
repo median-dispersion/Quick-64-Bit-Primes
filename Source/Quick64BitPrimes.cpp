@@ -82,7 +82,7 @@ namespace q64bp {
     // ============================================================================================
     // Prime decomposition using trial division
     // ============================================================================================
-    void trialDivision(
+    void trialDivisionUnsafe(
         ui64 number,
         std::vector<ui64>& primes
     ) {
@@ -90,7 +90,8 @@ namespace q64bp {
         // Any number passed to this function must be:
         // number >= 2
         // number != prime
-        // This is guaranteed by calling this function through primeDecomposition()
+        // Otherwise it is unsafe to use!
+        // These checks are guaranteed by calling this function through primeDecomposition()
 
         // Loop as long as the number is divisible by two using a bitwise AND check
         while (!(number & 1)) {
@@ -128,15 +129,16 @@ namespace q64bp {
     // Integer factorization using Pollard's rho algorithm and Floyd's cycle detection method
     // https://en.wikipedia.org/wiki/Pollard%27s_rho_algorithm#Algorithm
     // ============================================================================================
-    /* ui64 pollardFloydFactorization(ui64 number) {
+    /* ui64 pollardFloydFactorizationUnsafe(ui64 number) {
 
-        // This function is a legacy drop in replacement for pollardBrentFactorization()
+        // This function is a legacy drop in replacement for pollardBrentFactorizationUnsafe()
         // It uses Floyd's cycle detection method and is therefore slightly slower
 
         // Any number passed to this function must be:
         // number >= 2
         // number != prime
-        // This is guaranteed by calling this function through primeDecomposition()
+        // Otherwise it is unsafe to use!
+        // These checks are guaranteed by calling this function through primeDecomposition()
 
         // If the number is divisible by two return a factor of two
         if (!(number & 1)) { return 2; }
@@ -199,12 +201,13 @@ namespace q64bp {
     // ============================================================================================
     // Integer factorization using Pollard's rho algorithm and Brent's cycle detection method
     // ============================================================================================
-    ui64 pollardBrentFactorization(ui64 number) {
+    ui64 pollardBrentFactorizationUnsafe(ui64 number) {
 
         // Any number passed to this function must be:
         // number >= 2
         // number != prime
-        // This is guaranteed by calling this function through primeDecomposition()
+        // Otherwise it is unsafe to use!
+        // These checks are guaranteed by calling this function through primeDecomposition()
 
         // If the number is divisible by two return a factor of two
         if (!(number & 1)) { return 2; }
@@ -380,7 +383,7 @@ namespace q64bp {
 
                 // Use trial division to break down the number into prime factors
                 // Trial division is generally faster for small numbers up to around 30 million
-                trialDivision(factor, primes);
+                trialDivisionUnsafe(factor, primes);
 
                 // Continue with the next factor
                 continue;
@@ -388,7 +391,7 @@ namespace q64bp {
             }
 
             // Break down the latest factor into a new factor and deduce the other new factor
-            ui64 newFactor1 = pollardBrentFactorization(factor);
+            ui64 newFactor1 = pollardBrentFactorizationUnsafe(factor);
             ui64 newFactor2 = factor / newFactor1;
 
             // Add the two new factors to the list of all factors
@@ -440,25 +443,18 @@ namespace q64bp {
     // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
     // Based on the GO implementation: https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Go
     // ============================================================================================
-    std::vector<ui64> tonelliShanksSquareRoot(
+    std::vector<ui64> tonelliShanksSquareRootUnsafe(
         ui64 number,
         ui64 prime
     ) {
 
-        // If the provided value is not prime return no valid solutions
-        if (!millerRabinPrimalityTest(prime)) { return {}; }
-
-        // If the prime is two return the trivial solution
-        if (prime == 2) { return {number % 2}; }
-
-        // If the number exceeds the prime reduce it under modular arithmetic
-        if (number >= prime) { number %= prime; }
-
-        // If the number is zero return the trivial solution
-        if (number == 0) { return {0}; }
-
-        // If the number is a quadratic non residue return no solution
-        if (ModularArithmetic::exponentiation(number, (prime - 1) >> 1, prime) != 1) { return {}; }
+        // Any input passed to this function must be:
+        // number % prime != 0
+        // prime == must be prime
+        // prime != odd
+        // Legendre symbol == 1
+        // Otherwise it is unsafe to use!
+        // These checks are guaranteed by calling this function through tonelliShanksSquareRoot()
 
         // If the prime is in the form prime ≡ 3 (mod 4) use the fast path
         if ((prime & 3) == 3) {
@@ -563,6 +559,85 @@ namespace q64bp {
 
         // Return the result
         return {squareRoot, prime - squareRoot};
+
+    }
+
+    // ============================================================================================
+    // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
+    // Input validation before the main algorithm
+    // ============================================================================================
+    std::vector<ui64> tonelliShanksSquareRoot(
+        ui64 number,
+        ui64 prime
+    ) {
+
+        // If the provided value is not prime return no valid solutions
+        if (!millerRabinPrimalityTest(prime)) { return {}; }
+
+        // If the prime is two return the trivial solution
+        if (prime == 2) { return {number % 2}; }
+
+        // If the number exceeds the prime reduce it under modular arithmetic
+        if (number >= prime) { number %= prime; }
+
+        // If the number is zero return the trivial solution
+        if (number == 0) { return {0}; }
+
+        // If the Legendre symbol is not one return no solution
+        if (ModularArithmetic::exponentiation(number, (prime - 1) >> 1, prime) != 1) { return {}; }
+
+        // Run the main Tonelli-Shanks algorithm and return the result
+        return tonelliShanksSquareRootUnsafe(number, prime);
+
+    }
+
+    // ============================================================================================
+    // Get Fermat's sum of two squares representation of a prime
+    // ============================================================================================
+    std::vector<ui64> fermatSumOfTwoSquares(ui64 prime) {
+
+        // If the provided value is not prime return no valid solutions
+        if (!millerRabinPrimalityTest(prime)) { return {}; }
+
+        // If the prime is two return the trivial solutions
+        if (prime == 2) { return {1, 1}; }
+
+        // If the prime in not in the form prime ≡ 1 (mod 4) return no valid solutions
+        if (prime % 4 != 1) { return {}; }
+
+        // Get r² = p-1 (mod p) using Tonelli-Shanks
+        // Use the "unsafe" function because at this point the prime is validated to return a result
+        std::vector<ui64> squareRoots = tonelliShanksSquareRootUnsafe(prime - 1, prime);
+
+        // Set x to the prime
+        ui64 x = prime;
+
+        // Set y to the first result of the Tonelli-Shanks algorithm
+        // For an odd prime in the form prime ≡ 1 (mod 4) at least one result is guaranteed
+        ui64 y = squareRoots.front();
+
+        // Run the Euclidean algorithm until y <= √prime
+        while (y > prime / y) {
+
+            // Get the remainder of x divided by y
+            ui64 z = x % y;
+
+            // Set x to the current divisor
+            x = y;
+
+            // Set y to the remainder
+            y = z;
+
+        }
+
+        // Compute the first square root of r1² + r2² = p
+        ui64 squareRoot1 = HelperFunctions::integerSquareRoot(prime - y * y);
+
+        // Set the second square root of r1² + r2² = p
+        ui64 squareRoot2 = y;
+
+        // Return the result
+        return {squareRoot1, squareRoot2};
 
     }
 
