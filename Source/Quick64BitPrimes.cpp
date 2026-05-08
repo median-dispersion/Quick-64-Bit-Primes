@@ -96,8 +96,8 @@ namespace q64bp {
         // Loop as long as the number is divisible by two using a bitwise AND check
         while (!(number & 1)) {
 
-            // Divide out the prime factor
-            number /= 2;
+            // Divide out the prime factor using a right bit shift
+            number >>= 1;
 
             // Add the prime factor to the list of primes
             primes.push_back(2);
@@ -575,7 +575,7 @@ namespace q64bp {
         if (!millerRabinPrimalityTest(prime)) { return {}; }
 
         // If the prime is two return the trivial solution
-        if (prime == 2) { return {number % 2}; }
+        if (prime == 2) { return {number & 1}; }
 
         // If the number exceeds the prime reduce it under modular arithmetic
         if (number >= prime) { number %= prime; }
@@ -603,7 +603,7 @@ namespace q64bp {
         if (prime == 2) { return {1, 1}; }
 
         // If the prime in not in the form prime ≡ 1 (mod 4) return no valid solutions
-        if (prime % 4 != 1) { return {}; }
+        if ((prime & 3) != 1) { return {}; }
 
         // Get r² = p-1 (mod p) using Tonelli-Shanks
         // Use the "unsafe" function because at this point the prime is validated to return a result
