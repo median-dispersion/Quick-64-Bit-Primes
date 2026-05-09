@@ -1,7 +1,7 @@
 #ifndef QUICK_64_BIT_PRIMES_MODULAR_ARITHMETIC_HPP
 #define QUICK_64_BIT_PRIMES_MODULAR_ARITHMETIC_HPP
 
-#include "TypeDefinitions.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
 
 namespace q64bp::ModularArithmetic {
 

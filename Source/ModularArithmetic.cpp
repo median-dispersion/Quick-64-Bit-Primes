@@ -1,5 +1,5 @@
-#include "ModularArithmetic.hpp"
-#include "TypeDefinitions.hpp"
+#include "Quick64BitPrimes/ModularArithmetic.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
 #include <stdexcept>
 #include <algorithm>
 
@@ -37,11 +37,11 @@ namespace q64bp::ModularArithmetic {
 
     }
 
-    // Check if the __uint128_t type is available
-    #ifdef __SIZEOF_INT128__
+    // Check if an unsigned 128 bit integer type is available
+    #ifdef QUICK_64_BIT_PRIMES_UI128_AVAILABLE
 
     // ============================================================================================
-    // Modular multiplication using the __uint128_t type
+    // Modular multiplication using the q64bp::ui128 type
     // ============================================================================================
     ui64 multiplication(
         ui64 factor1,
@@ -57,7 +57,7 @@ namespace q64bp::ModularArithmetic {
 
     }
 
-    // If the __uint128_t type is not available use the fallback option
+    // If the unsigned 128 bit integer type is not available use the fallback option
     // The fallback option is significantly slower!
     #else
 

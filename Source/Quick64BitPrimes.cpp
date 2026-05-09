@@ -1,7 +1,7 @@
-#include "Quick64BitPrimes.hpp"
-#include "TypeDefinitions.hpp"
-#include "ModularArithmetic.hpp"
-#include "HelperFunctions.hpp"
+#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
+#include "Quick64BitPrimes/ModularArithmetic.hpp"
+#include "Quick64BitPrimes/HelperFunctions.hpp"
 #include <vector>
 #include <random>
 #include <numeric>

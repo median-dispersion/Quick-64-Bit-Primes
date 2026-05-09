@@ -1,7 +1,7 @@
-#include "TypeDefinitions.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
 #include <iostream>
 #include <chrono>
-#include "Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
 #include <vector>
 
 int main() {

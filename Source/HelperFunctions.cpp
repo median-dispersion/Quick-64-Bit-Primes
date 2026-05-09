@@ -1,6 +1,6 @@
-#include "HelperFunctions.hpp"
-#include "TypeDefinitions.hpp"
-#include "ModularArithmetic.hpp"
+#include "Quick64BitPrimes/HelperFunctions.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
+#include "Quick64BitPrimes/ModularArithmetic.hpp"
 
 namespace q64bp::HelperFunctions {
 

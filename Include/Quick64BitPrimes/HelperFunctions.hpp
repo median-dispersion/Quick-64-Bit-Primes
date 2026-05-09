@@ -1,7 +1,7 @@
 #ifndef QUICK_64_BIT_PRIMES_HELPER_FUNCTIONS_HPP
 #define QUICK_64_BIT_PRIMES_HELPER_FUNCTIONS_HPP
 
-#include "TypeDefinitions.hpp"
+#include "Quick64BitPrimes/TypeDefinitions.hpp"
 
 namespace q64bp::HelperFunctions {
 
