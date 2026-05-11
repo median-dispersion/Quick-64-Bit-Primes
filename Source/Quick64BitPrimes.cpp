@@ -6,6 +6,8 @@
 #include <random>
 #include <numeric>
 #include <algorithm>
+#include <optional>
+#include <utility>
 
 namespace q64bp {
 
@@ -440,10 +442,10 @@ namespace q64bp {
     }
 
     // ============================================================================================
-    // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
+    // Get the square roots of a number modulo a prime using the Tonelli-Shanks algorithm (r² ≡ n (mod p))
     // Based on the GO implementation: https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Go
     // ============================================================================================
-    std::vector<ui64> tonelliShanksSquareRootUnsafe(
+    std::optional<std::pair<ui64, std::optional<ui64>>> tonelliShanksAlgorithmUnsafe(
         ui64 number,
         ui64 prime
     ) {
@@ -454,7 +456,7 @@ namespace q64bp {
         // prime != odd
         // Legendre symbol == 1
         // Otherwise it is unsafe to use!
-        // These checks are guaranteed by calling this function through tonelliShanksSquareRoot()
+        // These checks are guaranteed by calling this function through tonelliShanksAlgorithm()
 
         // If the prime is in the form prime ≡ 3 (mod 4) use the fast path
         if ((prime & 3) == 3) {
@@ -463,7 +465,7 @@ namespace q64bp {
             ui64 squareRoot = ModularArithmetic::exponentiation(number, (prime + 1) >> 2, prime);
 
             // Return the result
-            return {squareRoot, prime - squareRoot};
+            return {{squareRoot, prime - squareRoot}};
 
         }
 
@@ -491,7 +493,7 @@ namespace q64bp {
             }
 
             // Return the result
-            return {squareRoot, prime - squareRoot};
+            return {{squareRoot, prime - squareRoot}};
 
         }
 
@@ -558,15 +560,15 @@ namespace q64bp {
         }
 
         // Return the result
-        return {squareRoot, prime - squareRoot};
+        return {{squareRoot, prime - squareRoot}};
 
     }
 
     // ============================================================================================
-    // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
+    // Get the square roots of a number modulo a prime using the Tonelli-Shanks algorithm (r² ≡ n (mod p))
     // Input validation before the main algorithm
     // ============================================================================================
-    std::vector<ui64> tonelliShanksSquareRoot(
+    std::optional<std::pair<ui64, std::optional<ui64>>> tonelliShanksAlgorithm(
         ui64 number,
         ui64 prime
     ) {
@@ -575,69 +577,61 @@ namespace q64bp {
         if (!millerRabinPrimalityTest(prime)) { return {}; }
 
         // If the prime is two return the trivial solution
-        if (prime == 2) { return {number & 1}; }
+        if (prime == 2) { return {{number & 1, {}}}; }
 
         // If the number exceeds the prime reduce it under modular arithmetic
         if (number >= prime) { number %= prime; }
 
         // If the number is zero return the trivial solution
-        if (number == 0) { return {0}; }
+        if (number == 0) { return {{0, {}}}; }
 
         // If the Legendre symbol is not one return no solution
         if (ModularArithmetic::exponentiation(number, (prime - 1) >> 1, prime) != 1) { return {}; }
 
         // Run the main Tonelli-Shanks algorithm and return the result
-        return tonelliShanksSquareRootUnsafe(number, prime);
+        return tonelliShanksAlgorithmUnsafe(number, prime);
 
     }
 
     // ============================================================================================
-    // Get Fermat's sum of two squares representation of a prime
+    // Get Fermat's sum of two squares representation of a prime (x² + y² = p)
     // ============================================================================================
-    std::vector<ui64> fermatSumOfTwoSquares(ui64 prime) {
+    std::optional<std::pair<ui64, ui64>> fermatSumOfTwoSquaresTheorem(ui64 prime) {
 
         // If the provided value is not prime return no valid solutions
         if (!millerRabinPrimalityTest(prime)) { return {}; }
 
         // If the prime is two return the trivial solutions
-        if (prime == 2) { return {1, 1}; }
+        if (prime == 2) { return {{1, 1}}; }
 
         // If the prime in not in the form prime ≡ 1 (mod 4) return no valid solutions
         if ((prime & 3) != 1) { return {}; }
 
-        // Get r² = p-1 (mod p) using Tonelli-Shanks
-        // Use the "unsafe" function because at this point the prime is validated to return a result
-        std::vector<ui64> squareRoots = tonelliShanksSquareRootUnsafe(prime - 1, prime);
-
         // Set x to the prime
         ui64 x = prime;
 
+        // Get r² ≡ p-1 (mod p) using Tonelli-Shanks
+        // Use the "unsafe" function because at this point the prime is validated to be safe
         // Set y to the first result of the Tonelli-Shanks algorithm
         // For an odd prime in the form prime ≡ 1 (mod 4) at least one result is guaranteed
-        ui64 y = squareRoots.front();
+        ui64 y = tonelliShanksAlgorithmUnsafe(prime - 1, prime)->first;
 
         // Run the Euclidean algorithm until y <= √prime
         while (y > prime / y) {
 
             // Get the remainder of x divided by y
-            ui64 z = x % y;
+            ui64 remainder = x % y;
 
             // Set x to the current divisor
             x = y;
 
             // Set y to the remainder
-            y = z;
+            y = remainder;
 
         }
 
-        // Compute the first square root of r1² + r2² = p
-        ui64 squareRoot1 = HelperFunctions::integerSquareRoot(prime - y * y);
-
-        // Set the second square root of r1² + r2² = p
-        ui64 squareRoot2 = y;
-
         // Return the result
-        return {squareRoot1, squareRoot2};
+        return {{HelperFunctions::integerSquareRoot(prime - y * y), y}};
 
     }
 

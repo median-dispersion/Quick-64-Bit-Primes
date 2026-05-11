@@ -1,14 +1,15 @@
 # Directories
-INCLUDE_DIRECTORY = Include
-SOURCE_DIRECTORY = Source
-EXAMPLES_DIRECTORY = Examples
-BUILD_DIRECTORY = Build
+INCLUDE_DIRECTORY = ./Include
+SOURCE_DIRECTORY = ./Source
+EXAMPLES_DIRECTORY = ./Examples
+BUILD_DIRECTORY = ./Build
 
 # Compiler
 COMPILER = g++
-COMPILER_FLAGS = -std=c++23 -Wall -Wextra -Werror -O3 -march=native -flto -I$(INCLUDE_DIRECTORY)
+COMPILER_FLAGS = -std=c++23 -Wall -Wextra -Werror -O3 -march=native -flto 
 
-# Files
+# Files and paths
+INCLUDES = -I$(INCLUDE_DIRECTORY)
 SOURCES = $(wildcard $(SOURCE_DIRECTORY)/*.cpp) $(wildcard $(EXAMPLES_DIRECTORY)/*.cpp)
 OBJECTS = $(patsubst %.cpp, $(BUILD_DIRECTORY)/%.o, $(SOURCES))
 TARGET = main
@@ -22,12 +23,8 @@ $(TARGET): $(OBJECTS)
 
 # Compile source files into object files
 $(BUILD_DIRECTORY)/%.o: %.cpp
-	@mkdir -p $(dir $@)
-	$(COMPILER) $(COMPILER_FLAGS) -c $< -o $@
-
-# Create build directory if missing
-$(BUILD_DIRECTORY):
-	mkdir -p $(BUILD_DIRECTORY)
+	mkdir -p $(dir $@)
+	$(COMPILER) $(COMPILER_FLAGS) $(INCLUDES) -c $< -o $@
 
 # Clean build artifacts
 clean:

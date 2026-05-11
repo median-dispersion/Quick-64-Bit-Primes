@@ -3,6 +3,8 @@
 
 #include "Quick64BitPrimes/TypeDefinitions.hpp"
 #include <vector>
+#include <optional>
+#include <utility>
 
 namespace q64bp {
 
@@ -25,17 +27,17 @@ namespace q64bp {
     std::vector<PrimeFactor> primeDecomposition(ui64 number);
 
     // ============================================================================================
-    // Get the square root of a number modulo a prime using the Tonelli-Shanks algorithm
+    // Get the square roots of a number modulo a prime using the Tonelli-Shanks algorithm (r² ≡ n (mod p))
     // ============================================================================================
-    std::vector<ui64> tonelliShanksSquareRoot(
+    std::optional<std::pair<ui64, std::optional<ui64>>> tonelliShanksAlgorithm(
         ui64 number,
         ui64 prime
     );
 
     // ============================================================================================
-    // Get Fermat's sum of two squares representation of a prime
+    // Get Fermat's sum of two squares representation of a prime (x² + y² = p)
     // ============================================================================================
-    std::vector<ui64> fermatSumOfTwoSquares(ui64 prime);
+    std::optional<std::pair<ui64, ui64>> fermatSumOfTwoSquaresTheorem(ui64 prime);
 
 }
 
