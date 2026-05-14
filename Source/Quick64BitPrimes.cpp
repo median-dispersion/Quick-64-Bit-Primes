@@ -35,10 +35,12 @@ namespace q64bp {
         }
 
         // Initialize the factor and exponent (d & s)
+        // Write number - 1 as factor^exponent
         ui64 factor = number - 1;
         ui64 exponent = 0;
 
         // Loop as long as factor is even using a bitwise AND check
+        // Factoring out all powers of two from number - 1
         while (!(factor & 1)) {
 
             // Divide the factor by 2 using a right bit shift
@@ -51,15 +53,22 @@ namespace q64bp {
 
         // Deterministic set of bases that works for all 64-bit integers
         // Values from https://miller-rabin.appspot.com/
+        // If none of these bases prove the number is a composite the number must be prime
         for (ui64 base : {2, 325, 9375, 28178, 450775, 9780504, 1795265022}) {
 
             // If the base is a multiple of the number continue with the next base
+            // This is to avoid cases where the modular exponentiation would result in 0 instead of 1 or number - 1
+            // In that case it would provide no useful information for detecting primality but also not proving the number composite
             if (base % number == 0) { continue; }
 
-            // Calculate a result using modular exponentiation
+            // Calculate the starting point of the Miller-Rabin primality test
             ui64 result = ModularArithmetic::exponentiation(base, factor, number);
 
-            // If the result is 1 or number - 1 continue with the next base
+            // If the result is 1 or number - 1, continue with the next base
+            // In the case that result is 1, squaring it repeatedly will make it stay 1
+            // In the case that result is number - 1, squaring it would make it 1, witch will always stay 1
+            // In those scenarios the base can't be used to prove the number is a composite
+            // Indicating that it might be prime, so continue the test with the next base
             if (result == 1 || result == number - 1) { continue; }
 
             // Loop up to exponent - 1 times
@@ -67,15 +76,19 @@ namespace q64bp {
             for (ui64 loop = 1; loop < exponent && result != number - 1; loop++) {
 
                 // Square the result using modular multiplication
+                // If the result becomes number - 1, the base cant be used to prove the number is a composite
+                // Indicating that it might be prime, so continue the test with the next base
                 result = ModularArithmetic::multiplication(result, result, number);
 
             }
 
-            // If the result is not number - 1 then the number is a composite so return false
+            // If the result is not number - 1, then the number is proven to be a composite, so return false
+            // This is because it did not behave like a prime under modular arithmetic eventually becoming number - 1
             if (result != number - 1) { return false; }
 
         }
 
+        // If no base could prove the number is a composite, the number must be prime
         // Return that the number is a prime
         return true;
 
@@ -483,7 +496,7 @@ namespace q64bp {
     // Get the square roots of a number modulo a prime using the Tonelli-Shanks algorithm (r² ≡ n (mod p))
     // Based on the GO implementation: https://rosettacode.org/wiki/Tonelli-Shanks_algorithm#Go
     // ============================================================================================
-    std::optional<std::pair<ui64, std::optional<ui64>>> tonelliShanksAlgorithmUnsafe(
+    std::pair<ui64, ui64> tonelliShanksAlgorithmUnsafe(
         ui64 number,
         ui64 prime
     ) {
@@ -491,7 +504,7 @@ namespace q64bp {
         // Any input passed to this function must be:
         // number % prime != 0
         // prime == must be prime
-        // prime != odd
+        // prime == must be odd
         // Legendre symbol == 1
         // Otherwise it is unsafe to use!
         // These checks are guaranteed by calling this function through tonelliShanksAlgorithm()
@@ -500,10 +513,11 @@ namespace q64bp {
         if ((prime & 3) == 3) {
 
             // Calculate the square root directly
+            // Prime + 1 is safe because the largest 64-bit prime + 1 will not overflow
             ui64 squareRoot = ModularArithmetic::exponentiation(number, (prime + 1) >> 2, prime);
 
             // Return the result
-            return {{squareRoot, prime - squareRoot}};
+            return {squareRoot, prime - squareRoot};
 
         }
 
@@ -517,6 +531,7 @@ namespace q64bp {
             // After that it returns the valid square roots
 
             // Calculate the square root directly
+            // Prime + 3 is safe because the largest 64-bit prime + 3 will not overflow
             ui64 squareRoot = ModularArithmetic::exponentiation(number, (prime + 3) >> 3, prime);
 
             // Check if the square root is in the incorrect form
@@ -531,15 +546,17 @@ namespace q64bp {
             }
 
             // Return the result
-            return {{squareRoot, prime - squareRoot}};
+            return {squareRoot, prime - squareRoot};
 
         }
 
         // Initialize the factor and exponent
+        // Writing prime - 1 as factor^exponent
         ui64 factor = prime - 1;
         ui64 exponent = 0;
 
         // Loop as long as factor is even using a bitwise AND check
+        // Factoring out all powers of two from prime - 1
         while (!(factor & 1)) {
 
             // Divide the factor by 2 using a right bit shift
@@ -553,7 +570,9 @@ namespace q64bp {
         // Initialize the quadratic non-residue
         ui64 quadraticNonResidue = 2;
 
-        // Find a quadratic non-residue
+        // Find a quadratic non-residue by repeatedly checking if the Legendre symbol is not -1
+        // Increasing the quadratic non-residue variable by one each loop and checking again
+        // For an odd prime a quadratic non-residue must exist
         while (ModularArithmetic::exponentiation(quadraticNonResidue, (prime - 1) >> 1, prime) != prime - 1) { quadraticNonResidue++; }
 
         // Initialize the variables for the Tonelli-Shanks iteration
@@ -563,6 +582,7 @@ namespace q64bp {
         ui64 currentExponent = exponent;
 
         // Loop until a solution is found
+        // With a Legendre symbol of 1 and an odd prime a solution must exist so this will terminate
         while (currentResidue != 1) {
 
             // Initialize variables for exponent search
@@ -577,7 +597,12 @@ namespace q64bp {
 
             }
 
+            // This should not be necessary as long as the inputs are validated
+            // Meaning the Legendre symbol of the number == 1 and the prime being odd
+            // if (!currentExponent) { throw std::runtime_error("The Tonelli-Shanks algorithm failed!"); }
+
             // Initialize variables for factor search
+            // For valid Tonelli-Shanks inputs, currentExponent can never be 0, so no underflow or infinite loop risk
             ui64 temporaryExponent = currentExponent - newExponent - 1;
             ui64 newFactor = currentFactor;
 
@@ -598,7 +623,7 @@ namespace q64bp {
         }
 
         // Return the result
-        return {{squareRoot, prime - squareRoot}};
+        return {squareRoot, prime - squareRoot};
 
     }
 
@@ -652,7 +677,7 @@ namespace q64bp {
         // Use the "unsafe" function because at this point the prime is validated to be safe
         // Set y to the first result of the Tonelli-Shanks algorithm
         // For an odd prime in the form prime ≡ 1 (mod 4) at least one result is guaranteed
-        ui64 y = tonelliShanksAlgorithmUnsafe(prime - 1, prime)->first;
+        ui64 y = tonelliShanksAlgorithmUnsafe(prime - 1, prime).first;
 
         // Run the Euclidean algorithm until y <= √prime
         while (y > prime / y) {
