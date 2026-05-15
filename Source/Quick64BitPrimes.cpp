@@ -525,8 +525,13 @@ namespace q64bp {
         if ((prime & 7) == 5) {
 
             // For the case that prime ≡ 5 (mod 8) there are two different direct calculations
-            // One for the case that the Legendre symbol is 1 and one for if it is -1
-            // This path always assumes the Legendre symbol is 1, then calculates the first square root
+
+            // Page 11: http://koclab.cs.ucsb.edu/teaching/ecc/eccPapers/Doche-ch11.pdf
+            // Cases for prime ≡ 5 (mod 8):
+            // n^{(p-1)/4} = 1
+            // n^{(p-1)/4} = -1
+
+            // This path always assumes the first case (=1), then calculates the first square root
             // It checks if the square root is valid and if not corrects the result to match the second case
             // After that it returns the valid square roots
 
