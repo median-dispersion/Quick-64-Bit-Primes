@@ -1,39 +1,28 @@
-#include "Quick64BitPrimes/TypeDefinitions.hpp"
+#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
 #include <iostream>
 #include <chrono>
-#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
 #include <vector>
 
 int main() {
 
-    // Number to test
+    // Get the input number
     q64bp::ui64 number;
-
-    // Print a message
     std::cout << "Enter a number to test: ";
-
-    // Get the number to test
     std::cin >> number;
 
     // Capture the test start time
-    auto startTime = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now();
 
     // Check if the number is a prime using the Miller-Rabin primality test
-    if (q64bp::millerRabinPrimalityTest(number)) {
+    if (q64bp::miller_rabin_primality_test(number)) {
 
-        // Capture the test stop time
-        auto stopTime = std::chrono::high_resolution_clock::now();
+        // Capture the total execution time
+        auto stop_time = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_time - start_time);
 
-        // Calculate the duration between the start and stop time
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stopTime - startTime);
-
-        // Print a message
+        // Print messages
         std::cout << number << " is prime!" << std::endl;
-
-        // Print the prime factor
         std::cout << "Prime factors of " << number << ": " << number << "^1" << std::endl;
-
-        // Print the total execution time
         std::cout << "Total execution time: " << duration.count() << " nanoseconds" << std::endl;
 
         // Exit
@@ -42,13 +31,11 @@ int main() {
     }
 
     // Decompose the number into its prime factors using Pollard's rho algorithm
-    std::vector<q64bp::PrimeFactor> primeFactors = q64bp::primeDecomposition(number);
+    std::vector<q64bp::PrimeFactor> prime_factors = q64bp::prime_decomposition(number);
 
-    // Capture the test stop time
-    auto stopTime = std::chrono::high_resolution_clock::now();
-
-    // Calculate the duration between the start and stop time
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stopTime - startTime);
+    // Capture the total execution time
+    auto stop_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop_time - start_time);
 
     // Counter for counting the number of prime factors
     q64bp::ui64 counter = 0;
@@ -58,21 +45,13 @@ int main() {
     std::cout << "Prime factors of " << number << ": ";
 
     // Loop through all prime factors
-    for (auto& primeFactor : primeFactors) {
+    for (auto& prime_factor : prime_factors) {
 
         // Print the prime factor
-        std::cout << primeFactor.base << "^" << primeFactor.exponent;
+        std::cout << prime_factor.base << "^" << prime_factor.exponent;
 
-        // Check if not the last prime factor
-        if (counter < primeFactors.size() - 1) {
-
-            // Print the separator
-            std::cout << ", ";
-
-        }
-
-        // Increase the counter
-        counter++;
+        // Print the separator if the isn't the last prime factor
+        counter++; if (counter < prime_factors.size()) { std::cout << ", "; }
 
     }
 

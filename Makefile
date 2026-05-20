@@ -6,11 +6,11 @@ BUILD_DIRECTORY = ./Build
 
 # Compiler
 COMPILER = g++
-COMPILER_FLAGS = -std=c++23 -Wall -Wextra -Werror -O3 -march=native -flto 
+COMPILER_FLAGS = -std=c++23 -Wall -Wextra -Werror -O3 -march=native -flto
 
 # Files and paths
 INCLUDES = -I$(INCLUDE_DIRECTORY)
-SOURCES = $(wildcard $(SOURCE_DIRECTORY)/*.cpp) $(wildcard $(EXAMPLES_DIRECTORY)/*.cpp)
+SOURCES = $(shell find $(SOURCE_DIRECTORY) -type f -name '*.cpp') $(shell find $(EXAMPLES_DIRECTORY) -type f -name '*.cpp')
 OBJECTS = $(patsubst %.cpp, $(BUILD_DIRECTORY)/%.o, $(SOURCES))
 TARGET = main
 

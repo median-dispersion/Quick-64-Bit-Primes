@@ -38,20 +38,20 @@ The benchmark results show that almost any number within the 64-bit integer rang
 #### Function prototype
 
 ```c++
-bool q64bp::millerRabinPrimalityTest(q64bp::ui64 number);
+bool q64bp::miller_rabin_primality_test(q64bp::ui64 number);
 ```
 
 #### Example
 
 ```c++
-#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/miller_rabin_primality_test.hpp"
 #include <iostream>
 
 int main() {
 
     int number = 123;
 
-    if (q64bp::millerRabinPrimalityTest(number)) {
+    if (q64bp::miller_rabin_primality_test(number)) {
 
         std::cout << number << " is prime!" << std::endl;
 
@@ -93,24 +93,24 @@ It also shows that trial division is faster for numbers up to about $2^{25}$, or
 #### Function prototype
 
 ```c++
-std::vector<q64bp::PrimeFactor> q64bp::primeDecomposition(q64bp::ui64 number);
+std::vector<q64bp::PrimeFactor> q64bp::prime_decomposition(q64bp::ui64 number);
 ```
 
 #### Example
 
 ```c++
-#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/prime_decomposition.hpp"
 #include <iostream>
 
 int main() {
 
     int number = 123;
 
-    auto primeFactors = q64bp::primeDecomposition(number);
+    auto prime_factors = q64bp::prime_decomposition(number);
 
-    for (const auto& primeFactor : primeFactors) {
+    for (const auto& prime_factor : prime_factors) {
 
-        std::cout << primeFactor.base << "^" << primeFactor.exponent << std::endl;
+        std::cout << prime_factor.base << "^" << prime_factor.exponent << std::endl;
 
     }
 
@@ -124,13 +124,13 @@ int main() {
 #### Function prototype
 
 ```c++
-std::optional<std::pair<q64bp::ui64, std::optional<q64bp::ui64>>> q64bp::tonelliShanksAlgorithm(q64bp::ui64 number, q64bp::ui64 prime);
+std::optional<std::pair<q64bp::ui64, std::optional<q64bp::ui64>>> q64bp::tonelli_shanks_algorithm(q64bp::ui64 number, q64bp::ui64 prime);
 ```
 
 #### Example
 
 ```c++
-#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/tonelli_shanks_algorithm.hpp"
 #include <iostream>
 
 int main() {
@@ -138,15 +138,15 @@ int main() {
     int number = 123;
     int prime = 137;
 
-    auto modularSquareRoots = q64bp::tonelliShanksAlgorithm(number, prime);
+    auto modular_square_roots = q64bp::tonelli_shanks_algorithm(number, prime);
 
-    if (modularSquareRoots) {
+    if (modular_square_roots) {
 
-        std::cout << modularSquareRoots->first << std::endl;
+        std::cout << modular_square_roots->first << std::endl;
 
-        if (modularSquareRoots->second) {
+        if (modular_square_roots->second) {
 
-            std::cout << *modularSquareRoots->second << std::endl;
+            std::cout << *modular_square_roots->second << std::endl;
 
         }
 
@@ -162,25 +162,25 @@ int main() {
 #### Function prototype
 
 ```c++
-std::optional<std::pair<q64bp::ui64, q64bp::ui64>> q64bp::fermatSumOfTwoSquaresTheorem(q64bp::ui64 prime);
+std::optional<std::pair<q64bp::ui64, q64bp::ui64>> q64bp::fermat_sums_of_two_squares_theorem(q64bp::ui64 prime);
 ```
 
 #### Example
 
 ```c++
-#include "Quick64BitPrimes/Quick64BitPrimes.hpp"
+#include "Quick64BitPrimes/fermat_sums_of_two_squares_theorem.hpp"
 #include <iostream>
 
 int main() {
 
     int prime = 137;
 
-    auto squareRoots = q64bp::fermatSumOfTwoSquaresTheorem(prime);
+    auto square_roots = q64bp::fermat_sums_of_two_squares_theorem(prime);
 
-    if (squareRoots) {
+    if (square_roots) {
 
-        std::cout << squareRoots->first << std::endl;
-        std::cout << squareRoots->second << std::endl;
+        std::cout << square_roots->first << std::endl;
+        std::cout << square_roots->second << std::endl;
 
     }
 
@@ -191,11 +191,11 @@ int main() {
 
 ### `std::uint_fast64_t` & `q64bp::ui64`
 
-This implementation uses the `std::uint_fast64_t` type wherever possible. This type guarantees at least 64 bits but may map to a larger and faster unsigned integer type if the platform provides one. The code aims to achieve optimal performance across different system architectures. The trade-off is that on systems where wider integer types are more efficient, the memory usage may increase slightly. The alias `q64bp::ui64` is defined in [Include/Quick64BitPrimes/TypeDefinitions.hpp](./Include/Quick64BitPrimes/TypeDefinitions.hpp) and can be changed from `std::uint_fast64_t` to `std::uint64_t` if a consistent memory footprint is preferred.
+This implementation uses the `std::uint_fast64_t` type wherever possible. This type guarantees at least 64 bits but may map to a larger and faster unsigned integer type if the platform provides one. The code aims to achieve optimal performance across different system architectures. The trade-off is that on systems where wider integer types are more efficient, the memory usage may increase slightly. The alias `q64bp::ui64` is defined in [Include/Quick64BitPrimes/types.hpp](./Include/Quick64BitPrimes/types.hpp) and can be changed from `std::uint_fast64_t` to `std::uint64_t` if a consistent memory footprint is preferred.
 
 ### `__uint128_t` & `q64bp::ui128`
 
-The `__uint128_t` type is an unsigned 128-bit integer type available in GCC and Clang. It is used in parts of the modular arithmetic to safely handle large values without causing overflows. On compilers that do not support `__uint128_t`, a fallback method is used for modular multiplication. This fallback relies on repeated addition to avoid overflows and is typically around 10 times slower than using the 128-bit integer type. Therefore, availability of the `__uint128_t` type is critical for achieving optimal performance. The alias `q64bp::ui128` is defined in [Include/Quick64BitPrimes/TypeDefinitions.hpp](./Include/Quick64BitPrimes/TypeDefinitions.hpp).
+The `__uint128_t` type is an unsigned 128-bit integer type available in GCC and Clang. It is used in parts of the modular arithmetic to safely handle large values without causing overflows. On compilers that do not support `__uint128_t`, a fallback method is used for modular multiplication. This fallback relies on repeated addition to avoid overflows and is typically around 10 times slower than using the 128-bit integer type. Therefore, availability of the `__uint128_t` type is critical for achieving optimal performance. The alias `q64bp::ui128` is defined in [Include/Quick64BitPrimes/types.hpp](./Include/Quick64BitPrimes/types.hpp).
 
 ## Requirements
 

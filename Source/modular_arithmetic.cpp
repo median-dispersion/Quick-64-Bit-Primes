@@ -1,14 +1,14 @@
-#include "Quick64BitPrimes/ModularArithmetic.hpp"
-#include "Quick64BitPrimes/TypeDefinitions.hpp"
+#include "Quick64BitPrimes/modular_arithmetic.hpp"
+#include "Quick64BitPrimes/types.hpp"
 #include <stdexcept>
 #include <algorithm>
 
-namespace q64bp::ModularArithmetic {
+namespace q64bp {
 
     // ============================================================================================
     // Modular addition
     // ============================================================================================
-    ui64 addition(
+    ui64 modular_addition(
         ui64 addend1,
         ui64 addend2,
         ui64 modulus
@@ -43,7 +43,7 @@ namespace q64bp::ModularArithmetic {
     // ============================================================================================
     // Modular multiplication using the q64bp::ui128 type
     // ============================================================================================
-    ui64 multiplication(
+    ui64 modular_multiplication(
         ui64 factor1,
         ui64 factor2,
         ui64 modulus
@@ -64,7 +64,7 @@ namespace q64bp::ModularArithmetic {
     // ============================================================================================
     // Modular multiplication
     // ============================================================================================
-    ui64 multiplication(
+    ui64 modular_multiplication(
         ui64 factor1,
         ui64 factor2,
         ui64 modulus
@@ -138,7 +138,7 @@ namespace q64bp::ModularArithmetic {
     // Modular exponentiation
     // https://en.wikipedia.org/wiki/Modular_exponentiation#Pseudocode
     // ============================================================================================
-    ui64 exponentiation(
+    ui64 modular_exponentiation(
         ui64 base,
         ui64 exponent,
         ui64 modulus
@@ -162,10 +162,10 @@ namespace q64bp::ModularArithmetic {
 
             // Check if the exponent is odd using a bitwise AND
             // Multiply the result by the base mod modulus
-            if (exponent & 1) { result = multiplication(result, base, modulus); }
+            if (exponent & 1) { result = modular_multiplication(result, base, modulus); }
 
             // Square the base mod modulus
-            base = multiplication(base, base, modulus);
+            base = modular_multiplication(base, base, modulus);
 
             // Divide the exponent by 2 using a right bit shift
             exponent >>= 1;

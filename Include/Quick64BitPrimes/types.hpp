@@ -1,5 +1,5 @@
-#ifndef QUICK_64_BIT_PRIMES_TYPE_DEFINITIONS_HPP
-#define QUICK_64_BIT_PRIMES_TYPE_DEFINITIONS_HPP
+#ifndef QUICK_64_BIT_PRIMES_TYPES_HPP
+#define QUICK_64_BIT_PRIMES_TYPES_HPP
 
 #include <cstdint>
 
@@ -13,6 +13,14 @@ namespace q64bp {
     #define QUICK_64_BIT_PRIMES_UI128_AVAILABLE
     using ui128 = __uint128_t;
     #endif
+
+    // Prime factor structure
+    struct PrimeFactor {
+
+        ui64 base;
+        ui64 exponent;
+
+    };
 
 }
 
