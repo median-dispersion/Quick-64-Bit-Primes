@@ -4,6 +4,7 @@
 #include "Quick64BitPrimes/miller_rabin_primality_test.hpp"
 #include <optional>
 #include <utility>
+#include <stdexcept>
 
 namespace q64bp {
 
@@ -25,6 +26,7 @@ namespace q64bp {
         // These checks are guaranteed by calling this function through tonelli_shanks_algorithm()
 
         // If the prime is in the form prime ≡ 3 (mod 4) use the fast path
+        // Use bitwise tricks to perform the modular operation
         if ((prime & 3) == 3) {
 
             // Calculate the square root directly
@@ -37,6 +39,7 @@ namespace q64bp {
         }
 
         // If the prime is in the form prime ≡ 5 (mod 8) use the fast path
+        // Use bitwise tricks to perform the modular operation
         if ((prime & 7) == 5) {
 
             // For the case that prime ≡ 5 (mod 8) there are two different direct calculations
@@ -93,7 +96,15 @@ namespace q64bp {
         // Find a quadratic non-residue by repeatedly checking if the Legendre symbol is not -1
         // Increasing the quadratic non-residue variable by one each loop and checking again
         // For an odd prime a quadratic non-residue must exist
-        while (modular_exponentiation(quadratic_non_residue, (prime - 1) >> 1, prime) != prime - 1) { quadratic_non_residue++; }
+        // If for whatever reason the quadratic non-residue can't be found, it will only loop up to prime
+        while (
+            quadratic_non_residue < prime &&
+            modular_exponentiation(quadratic_non_residue, (prime - 1) >> 1, prime) != prime - 1
+        ) { quadratic_non_residue++; }
+
+        // Check if no quadratic non-residue was found and throw an exception
+        // With properly guarded inputs this will never happen and should be mathematically impossible
+        if (quadratic_non_residue >= prime) { throw std::logic_error("Invalid quadratic non-residue!"); }
 
         // Initialize the variables for the Tonelli-Shanks iteration
         ui64 square_root = modular_exponentiation(number, (factor + 1) >> 1, prime);
@@ -117,9 +128,9 @@ namespace q64bp {
 
             }
 
-            // This should not be necessary as long as the inputs are validated
-            // Meaning the Legendre symbol of the number == 1 and the prime being odd
-            // if (!current_exponent) { throw std::runtime_error("The Tonelli-Shanks algorithm failed!"); }
+            // Check if the Tonelli-Shanks invariant holds, a failure could lead to an infinite loop
+            // With properly guarded inputs this will never happen and should be mathematically impossible
+            if (new_exponent >= current_exponent) { throw std::logic_error("Invariant failure!"); }
 
             // Initialize variables for factor search
             // For valid Tonelli-Shanks inputs, current_exponent can never be 0, so no underflow or infinite loop risk

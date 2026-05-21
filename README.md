@@ -155,27 +155,27 @@ int main() {
 }
 ```
 
-## Sums of two squares representation
+## Sum of two squares representation
 
 ### Usage
 
 #### Function prototype
 
 ```c++
-std::optional<std::pair<q64bp::ui64, q64bp::ui64>> q64bp::fermat_sums_of_two_squares_theorem(q64bp::ui64 prime);
+std::optional<std::pair<q64bp::ui64, q64bp::ui64>> q64bp::fermat_sum_of_two_squares_theorem(q64bp::ui64 prime);
 ```
 
 #### Example
 
 ```c++
-#include "Quick64BitPrimes/fermat_sums_of_two_squares_theorem.hpp"
+#include "Quick64BitPrimes/fermat_sum_of_two_squares_theorem.hpp"
 #include <iostream>
 
 int main() {
 
     int prime = 137;
 
-    auto square_roots = q64bp::fermat_sums_of_two_squares_theorem(prime);
+    auto square_roots = q64bp::fermat_sum_of_two_squares_theorem(prime);
 
     if (square_roots) {
 

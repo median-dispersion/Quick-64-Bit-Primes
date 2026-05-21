@@ -1,4 +1,4 @@
-#include "Quick64BitPrimes/fermat_sums_of_two_squares_theorem.hpp"
+#include "Quick64BitPrimes/fermat_sum_of_two_squares_theorem.hpp"
 #include "Quick64BitPrimes/types.hpp"
 #include "Quick64BitPrimes/miller_rabin_primality_test.hpp"
 #include "Quick64BitPrimes/tonelli_shanks_algorithm.hpp"
@@ -55,7 +55,7 @@ namespace q64bp {
     // ============================================================================================
     // Get Fermat's sum of two squares representation of a prime (x² + y² = p)
     // ============================================================================================
-    std::optional<std::pair<ui64, ui64>> fermat_sums_of_two_squares_theorem(ui64 prime) {
+    std::optional<std::pair<ui64, ui64>> fermat_sum_of_two_squares_theorem(ui64 prime) {
 
         // If the provided value is not prime return no valid solutions
         if (!miller_rabin_primality_test(prime)) { return {}; }
