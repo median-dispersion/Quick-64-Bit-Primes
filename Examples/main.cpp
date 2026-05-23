@@ -51,7 +51,7 @@ int main() {
         std::cout << prime_factor.base << "^" << prime_factor.exponent;
 
         // Print the separator if the isn't the last prime factor
-        counter++; if (counter < prime_factors.size()) { std::cout << ", "; }
+        if (++counter < prime_factors.size()) { std::cout << ", "; }
 
     }
 
