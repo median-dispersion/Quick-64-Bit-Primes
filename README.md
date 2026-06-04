@@ -119,6 +119,14 @@ int main() {
 
 ## Square roots of $n$ modulo $p$
 
+### Performance
+
+<p align="center">
+    <a href="./Documentation/Tonelli-Shanks algorithm chart.svg">
+        <img src="./Documentation/Tonelli-Shanks algorithm chart.svg" style="width: 800px;">
+    </a>
+</p>
+
 ### Usage
 
 #### Function prototype
@@ -156,6 +164,14 @@ int main() {
 ```
 
 ## Sum of two squares representation
+
+### Performance
+
+<p align="center">
+    <a href="./Documentation/Fermat's sum of two squares theorem chart.svg">
+        <img src="./Documentation/Fermat's sum of two squares theorem chart.svg" style="width: 800px;">
+    </a>
+</p>
 
 ### Usage
 
