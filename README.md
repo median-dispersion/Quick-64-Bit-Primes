@@ -239,7 +239,7 @@ This repository was developed and tested on Debian and requires the following pa
 
 Install packages:
 ```sh
-sudo apt install git build-essential
+sudo apt-get install git build-essential
 ```
 
 ## Vendoring
