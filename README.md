@@ -274,9 +274,14 @@ Project
 
 The code in this repository is designed to be included as a library within an existing C++ project through [vendoring](#vendoring). When compiled on its own, it produces an executable that accepts a single numeric input, determines whether the number is prime or returns its prime factors and reports the total execution time in nanoseconds.
 
+Clean build artifacts:
+```sh
+make clean
+```
+
 Build the executable:
 ```sh
-make
+make -j $(nproc)
 ```
 
 Run the executable:

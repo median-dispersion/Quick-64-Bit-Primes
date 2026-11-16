@@ -14,8 +14,11 @@ SOURCES = $(shell find $(SOURCE_DIRECTORY) -type f -name '*.cpp') $(shell find $
 OBJECTS = $(patsubst %.cpp, $(BUILD_DIRECTORY)/%.o, $(SOURCES))
 TARGET = main
 
+# Mark as action, not file
+.PHONY: all clean
+
 # Default build rule
-all: clean $(TARGET)
+all: $(TARGET)
 
 # Link object files to create executable
 $(TARGET): $(OBJECTS)
