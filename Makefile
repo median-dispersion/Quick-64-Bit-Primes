@@ -10,7 +10,7 @@ COMPILER_FLAGS = -std=c++23 -Wall -Wextra -Werror -O3 -march=native -flto
 
 # Files and paths
 INCLUDES = -I$(INCLUDE_DIRECTORY)
-SOURCES = $(shell find $(SOURCE_DIRECTORY) -type f -name '*.cpp') $(shell find $(EXAMPLES_DIRECTORY) -type f -name '*.cpp')
+SOURCES = $(shell find $(SOURCE_DIRECTORY) -type f -name *.cpp) $(shell find $(EXAMPLES_DIRECTORY) -type f -name *.cpp)
 OBJECTS = $(patsubst %.cpp, $(BUILD_DIRECTORY)/%.o, $(SOURCES))
 TARGET = main
 
